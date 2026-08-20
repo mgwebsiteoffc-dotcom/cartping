@@ -91,6 +91,13 @@ class OpenRouterClient
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
+
+            if ($response->status() === 401 || $this->apiKey === '') {
+                throw new \RuntimeException(
+                    'OpenRouter authentication failed (401). Set OPENROUTER_API_KEY in your .env to a valid OpenRouter API key, then run: composer deploy'
+                );
+            }
+
             throw new \RuntimeException('OpenRouter request failed: '.$response->body());
         }
 
