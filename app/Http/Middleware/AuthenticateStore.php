@@ -19,9 +19,13 @@ class AuthenticateStore extends Authenticate
     protected function redirectTo(Request $request): ?string
     {
         if (! $request->expectsJson()) {
-            // Embedded admin / installed-shop context → go straight to Shopify OAuth
-            // (no login page). Standalone access → the normal sign-in page.
-            if (config('shopify.embedded') && ($request->has('id_token') || $request->header('Authorization'))) {
+            // Embedded admin context is signalled by the `host` query param that
+            // Shopify appends (plus id_token/session). Go straight to Shopify OAuth
+            // so the merchant never sees our login page inside the admin.
+            $embedded = config('shopify.embedded')
+                && ($request->has('host') || $request->has('id_token') || $request->has('session'));
+
+            if ($embedded) {
                 $shop = $request->input('shop');
                 if ($shop) {
                     return url()->route('auth.shopify', ['shop' => $shop]);

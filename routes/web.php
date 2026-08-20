@@ -47,6 +47,8 @@ Route::prefix('auth')->name('auth.')->group(function () {
     // Mode 1: public Shopify App OAuth flow.
     Route::get('shopify', [ShopifyAuthController::class, 'redirect'])->name('shopify');
     Route::get('shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.callback');
+    // Embedded session-token exchange (no cookies needed in the admin iframe).
+    Route::post('shopify/session', [ShopifyAuthController::class, 'session'])->name('shopify.session');
 
     // Mode 2: manual custom-app token signup (choose provider + paste token).
     Route::get('manual', [AuthController::class, 'showManual'])->name('manual');

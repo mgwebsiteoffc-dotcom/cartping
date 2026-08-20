@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global state: resolve the authenticated merchant's store context.
         $middleware->append(\App\Http\Middleware\ResolveStoreContext::class);
 
+        // The embedded session-token exchange is authenticated by the JWT
+        // signature itself, and cookies (hence CSRF tokens) are blocked inside
+        // the Shopify admin iframe — so exempt it from CSRF verification.
+        $middleware->validateCsrfTokens(except: ['auth/shopify/session']);
+
         // Auth guard aliases used by controllers.
         $middleware->alias([
             'auth.store'    => \App\Http\Middleware\AuthenticateStore::class,

@@ -36,6 +36,37 @@ class ShopifyAuthController extends Controller
     }
 
     /**
+     * Exchange a Shopify embedded session token for a logged-in store session.
+     * Called by the embedded frontend (via App Bridge) when cookies are blocked
+     * in the admin iframe. Returns 200 + shop on success, 401 otherwise.
+     */
+    public function session(Request $request, \App\Services\Shopify\ShopifySessionToken $sessionToken)
+    {
+        $token = $request->input('session_token')
+            ?: ($request->header('Authorization') && str_starts_with($request->header('Authorization'), 'Bearer ')
+                ? substr($request->header('Authorization'), 7)
+                : $request->query('id_token'));
+
+        if (! $token) {
+            return response()->json(['ok' => false], 401);
+        }
+
+        $store = $sessionToken->resolveStore($token);
+
+        if (! $store) {
+            return response()->json(['ok' => false], 401);
+        }
+
+        Auth::guard('store')->login($store);
+
+        return response()->json([
+            'ok' => true,
+            'shop' => $store->myshopify_domain,
+            'dashboard' => url()->route('dashboard.index'),
+        ]);
+    }
+
+    /**
      * Accept "yourshop", "yourshop.myshopify.com", or a full https:// URL and
      * normalize to "yourshop.myshopify.com".
      */
