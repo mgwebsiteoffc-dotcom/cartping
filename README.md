@@ -293,14 +293,25 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   auto-registers its `reverb:start` command, so no manual provider registration
   is needed; the custom provider was removed. Re-run `composer update` first.
 - **`There are no commands defined in the "package" namespace`** during
-  `composer update` — caused by the old-style full provider list in
-  `config/app.php` (now the modern empty `providers`/`aliases` layout). Pull the
-  latest code.
-- **`Target class [files] does not exist` (or any `Target class [...]` right
-  after composer)** — this only happened because a Composer hook booted the app
-  mid-install. The `post-autoload-dump` hook has been removed, so `composer
-  install/update` no longer boots Laravel. Package discovery runs lazily on the
-  first `php artisan` command.
+  `composer update`, and **`Target class [files] does not exist`** on `php
+  artisan` — both mean the framework's default providers aren't being registered,
+  because `config/app.php` had a `providers` key (either the old full list, or an
+  empty `[]`). The fix is to omit the `providers`/`aliases` keys entirely; pull
+  the latest code and run `rm -f bootstrap/cache/*.php`.
+- **`Target class [files] does not exist`** on any `php artisan` command (and the
+  earlier `There are no commands defined in the "package" namespace`). **Root
+  cause:** a `'providers'` key present in `config/app.php`. Laravel 11+ falls back
+  to its framework `defaultProviders()` (filesystem, auth, cache, validation,
+  console commands, …) **only when the `app.providers` key is absent**. An even
+  *empty* `providers => []` suppresses all framework providers and the app can't
+  boot. `config/app.php` here deliberately has **no** `providers`/`aliases` keys
+  (matching the official skeleton); app providers live in `bootstrap/providers.php`.
+  After pulling this, run:
+  ```bash
+  rm -f bootstrap/cache/*.php
+  composer dump-autoload
+  php artisan key:generate
+  ```
 - **`Target class [App\...] does not exist`** — run
   `composer dump-autoload` (or `php artisan optimize:clear`).
 
