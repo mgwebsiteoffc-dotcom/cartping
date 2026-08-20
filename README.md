@@ -184,6 +184,40 @@ fires a Meta CAPI `Purchase` for ROAS.
 
 ---
 
+## WhatsApp providers (Meta / Whatify)
+
+- **Meta Cloud API** — uses a bearer **access token** + `phone_number_id` + `waba_id`.
+- **Whatify** — uses an **API key** (+ optional **API secret**) from the Whatify
+  dashboard. This app integrates Whatify's **External / Server API**
+  (`https://whatify.in/api/v1/external`, `X-API-Key` header):
+
+  | Action | Whatify endpoint |
+  | --- | --- |
+  | Send text | `POST /send-message` `{ phone, message }` |
+  | Send template | `POST /send-template` `{ phone, template_name, body_params }` |
+  | Template status | `GET /templates/{id}` |
+  | Test connection | `GET /ping` |
+
+  The connection UI (onboarding step 2 and **Settings → WhatsApp**) shows the
+  correct fields per provider and lets you **switch between Meta and Whatify**
+  instantly — just pick the provider and paste its credentials.
+
+## Seeded users
+
+`php artisan migrate --seed` creates platform + demo users:
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `superadmin@cartping.test` | `superadmin123` | superadmin |
+| `admin@cartping.test` | `admin123456` | admin |
+| `agent@cartping.test` | `agent123456` | agent |
+| `owner@demo.myshopify.com` | `password123` | owner |
+| `staff-admin@demo.myshopify.com` | `password123` | admin |
+| `staff-agent@demo.myshopify.com` | `password123` | agent |
+| `staff-viewer@demo.myshopify.com` | `password123` | viewer |
+
+Roles: `superadmin` (platform), `admin`, `agent`, `viewer` (per-store), `owner`.
+
 ## Shopify OAuth (2026 policy)
 
 As of **April 1, 2026**, Shopify requires **all new public apps** to use
@@ -199,8 +233,17 @@ monitor). This app implements that:
   atomically, and retries once on a 401.
 - `config/shopify.php` uses API version **`2026-07`** (current). Bump `SHOPIFY_API_VERSION`
   in `.env` each quarter.
+- **OAuth redirect URI:** `ShopifyOAuth::authorizeUrl()` derives `redirect_uri`
+  from `config('app.url')` (or `SHOPIFY_REDIRECT_URI`). This URI **must be
+  whitelisted** under the app's "Allowed redirection URL(s)" in the Shopify
+  Partner dashboard — otherwise you get `Oauth error invalid_request: The
+  redirect_uri is not whitelisted`. It must match exactly (scheme + domain + path
+  `/auth/shopify/callback`).
 - Embedded installs: the OAuth callback redirects back into the Shopify admin at
-  the app URL, and the app layout loads Shopify **App Bridge** for embedded use.
+  the app URL, the app layout loads Shopify **App Bridge**, and
+  `VerifyShopifySession` validates the **session token** (JWT, RS256 via the
+  shop's JWKS) to auto-login installed merchants — so **no login page is shown
+  inside the Shopify admin** once the app is installed.
 
 > Custom App (manual-token) mode and merchant-created apps are **not** affected by
 > the expiring-token rule — they keep using a pasted admin token as-is.
@@ -345,6 +388,10 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   route cache**. Run `composer deploy` (or `php artisan optimize:clear`). If you
   previously ran `php artisan route:cache`, stop doing that on shared hosting —
   it's what creates this error on every code change.
+- **`Oauth error invalid_request: The redirect_uri is not whitelisted`** — the
+  OAuth `redirect_uri` (default `{APP_URL}/auth/shopify/callback`) isn't listed in
+  your Shopify app's **Allowed redirection URL(s)**. Add it there, and make sure
+  `APP_URL` (or `SHOPIFY_REDIRECT_URI`) in `.env` exactly matches the scheme/domain.
 - **`Data truncated for column 'user_id'` / `SQLSTATE[01000]` on `sessions`** —
   `sessions.user_id` was created as a bigint but Store/User use UUID primary
   keys, so the UUID was truncated when writing the session. It's now a `string`

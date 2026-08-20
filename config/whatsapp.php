@@ -22,8 +22,10 @@ return [
         ],
         'whatify' => [
             'driver' => \App\Services\Whatsapp\Providers\WhatifyProvider::class,
-            'base_url' => env('WHATIFY_BASE_URL', 'https://api.whatify.app/v1'),
-            'api_token' => env('WHATIFY_API_TOKEN', ''),
+            // External / server API (API-key based). See https://whatify.in/api-docs
+            'base_url' => env('WHATIFY_BASE_URL', 'https://whatify.in/api/v1/external'),
+            'api_key' => env('WHATIFY_API_KEY', ''),
+            'api_secret' => env('WHATIFY_API_SECRET', ''),
             'webhook_secret' => env('WHATIFY_WEBHOOK_SECRET', ''),
         ],
     ],

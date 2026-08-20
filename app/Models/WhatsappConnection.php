@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Per-tenant WhatsApp provider credentials and status.
  * provider: meta | whatify  (see config('whatsapp.providers'))
+ *
+ * Meta uses:   token (access token) + phone_number_id + waba_id
+ * Whatify uses: api_key (+ optional api_secret) generated from the Whatify dashboard.
  */
 class WhatsappConnection extends Model
 {
@@ -25,7 +28,9 @@ class WhatsappConnection extends Model
         'display_name',
         'phone_number_id',   // Meta
         'waba_id',           // Meta Business Account id
-        'token',             // Meta access token OR Whatify API token
+        'token',             // Meta access token
+        'api_key',           // Whatify API key (X-API-Key)
+        'api_secret',        // Whatify API secret (if provided)
         'base_url',
         'webhook_verify_token',
         'webhook_secret',
@@ -35,12 +40,14 @@ class WhatsappConnection extends Model
         'meta',
     ];
 
-    protected $hidden = ['token', 'webhook_secret'];
+    protected $hidden = ['token', 'api_key', 'api_secret', 'webhook_secret'];
 
     protected function casts(): array
     {
         return [
             'token' => 'encrypted',
+            'api_key' => 'encrypted',
+            'api_secret' => 'encrypted',
             'webhook_secret' => 'encrypted',
             'is_connected' => 'boolean',
             'connected_at' => 'datetime',
@@ -60,6 +67,8 @@ class WhatsappConnection extends Model
 
         return array_merge($defaults, [
             'token' => $this->token,
+            'api_key' => $this->api_key,
+            'api_secret' => $this->api_secret,
             'phone_number_id' => $this->phone_number_id,
             'base_url' => $this->base_url ?: ($defaults['base_url'] ?? null),
             'webhook_verify_token' => $this->webhook_verify_token,

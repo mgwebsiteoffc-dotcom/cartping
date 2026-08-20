@@ -58,7 +58,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
 | Merchant dashboard (authenticated store)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth.store')->group(function () {
+Route::middleware(['shopify.session', 'auth.store'])->group(function () {
     Route::get('/dashboard', [ShopifyController::class, 'dashboard'])->name('dashboard.index');
 
     Route::prefix('onboarding')->name('onboarding.')->group(function () {

@@ -46,17 +46,27 @@
     @if ($store->onboarding_step >= 2 && $store->onboarding_step <= 3)
         <section class="card">
             <h2>2 · Connect WhatsApp</h2>
-            <form method="POST" action="{{ route('onboarding.whatsapp') }}" class="stack">
+            <form method="POST" action="{{ route('onboarding.whatsapp') }}" class="stack" id="whatsapp-form">
                 @csrf
                 <label>Provider
-                    <select name="provider">
-                        <option value="meta">Meta Cloud API</option>
-                        <option value="whatify">Whatify</option>
+                    <select name="provider" id="provider-select">
+                        <option value="meta" @selected(($store->whatsappConnection?->provider ?? 'meta') === 'meta')>Meta Cloud API</option>
+                        <option value="whatify" @selected(($store->whatsappConnection?->provider ?? '') === 'whatify')>Whatify</option>
                     </select>
                 </label>
-                <label>Token<input name="token" value="{{ $store->whatsappConnection?->token ?? '' }}"></label>
-                <label>Phone number ID<input name="phone_number_id" value="{{ $store->whatsappConnection?->phone_number_id ?? '' }}"></label>
-                <label>WABA ID (Meta)<input name="waba_id" value="{{ $store->whatsappConnection?->waba_id ?? '' }}"></label>
+
+                <div class="provider-fields" data-provider="meta">
+                    <label>Meta access token<input name="token" placeholder="EAAG..." value="{{ $store->whatsappConnection?->token ?? '' }}"></label>
+                    <label>Phone number ID<input name="phone_number_id" placeholder="1000..." value="{{ $store->whatsappConnection?->phone_number_id ?? '' }}"></label>
+                    <label>WABA ID (Business Account)<input name="waba_id" value="{{ $store->whatsappConnection?->waba_id ?? '' }}"></label>
+                </div>
+
+                <div class="provider-fields" data-provider="whatify">
+                    <label>Whatify API key<input name="api_key" placeholder="wfy_..." value="{{ $store->whatsappConnection?->api_key ?? '' }}"></label>
+                    <label>Whatify API secret (optional)<input name="api_secret" value="{{ $store->whatsappConnection?->api_secret ?? '' }}"></label>
+                    <p class="muted">Generate these from your <a href="https://whatify.in" target="_blank" rel="noopener">Whatify dashboard</a> → API credentials.</p>
+                </div>
+
                 <button class="btn primary" type="submit">Connect</button>
             </form>
 
@@ -68,6 +78,19 @@
                 </form>
             @endif
         </section>
+
+        <script>
+            (function () {
+                var sel = document.getElementById('provider-select');
+                var blocks = document.querySelectorAll('.provider-fields');
+                function toggle() {
+                    blocks.forEach(function (b) {
+                        b.style.display = (b.getAttribute('data-provider') === sel.value) ? 'block' : 'none';
+                    });
+                }
+                if (sel) { sel.addEventListener('change', toggle); toggle(); }
+            })();
+        </script>
     @endif
 
     @if ($store->onboarding_step >= 3 && $store->onboarding_step <= 4)

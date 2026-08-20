@@ -29,13 +29,21 @@ class ShopifyOAuth
 
     /**
      * Build the authorize URL for a given shop domain.
+     *
+     * The redirect_uri MUST exactly match one of the "Allowed redirection URL(s)"
+     * configured in the Shopify app (Settings → App setup). We always derive it
+     * from config('app.url') so it never drifts based on which host served the
+     * current request (a common cause of "redirect_uri is not whitelisted").
      */
     public function authorizeUrl(string $shop, array $additionalParams = []): string
     {
+        $redirectUri = config('shopify.redirect_uri')
+            ?: rtrim(config('app.url'), '/').'/auth/shopify/callback';
+
         $params = array_merge([
             'client_id' => $this->apiKey,
             'scope' => implode(',', config('shopify.scopes')),
-            'redirect_uri' => route('auth.shopify.callback'),
+            'redirect_uri' => $redirectUri,
             'state' => $this->makeState($shop),
             'grant_options[]' => 'per-user',
         ], $additionalParams);

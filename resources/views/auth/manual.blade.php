@@ -14,14 +14,35 @@
         <label>Shopify Admin API access token<input name="shopify_access_token" value="{{ old('shopify_access_token') }}" required></label>
 
         <label>WhatsApp provider
-            <select name="whatsapp_provider">
+            <select name="whatsapp_provider" id="provider-select">
                 <option value="meta">Meta Cloud API</option>
                 <option value="whatify">Whatify</option>
             </select>
         </label>
-        <label>Provider token / API key<input name="whatsapp_token" value="{{ old('whatsapp_token') }}" required></label>
-        <label>Phone number ID (Meta)<input name="phone_number_id" value="{{ old('phone_number_id') }}"></label>
+
+        <div class="provider-fields" data-provider="meta">
+            <label>Meta access token<input name="whatsapp_token" value="{{ old('whatsapp_token') }}"></label>
+            <label>Phone number ID (Meta)<input name="phone_number_id" value="{{ old('phone_number_id') }}"></label>
+        </div>
+
+        <div class="provider-fields" data-provider="whatify">
+            <label>Whatify API key<input name="whatsapp_api_key" value="{{ old('whatsapp_api_key') }}"></label>
+            <label>Whatify API secret (optional)<input name="whatsapp_api_secret" value="{{ old('whatsapp_api_secret') }}"></label>
+        </div>
 
         <button class="btn primary" type="submit">Connect</button>
     </form>
+
+    <script>
+        (function () {
+            var sel = document.getElementById('provider-select');
+            var blocks = document.querySelectorAll('.provider-fields');
+            function toggle() {
+                blocks.forEach(function (b) {
+                    b.style.display = (b.getAttribute('data-provider') === sel.value) ? 'block' : 'none';
+                });
+            }
+            if (sel) { sel.addEventListener('change', toggle); toggle(); }
+        })();
+    </script>
 @endsection

@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Whatify WhatsApp provider adapter.
+ * Whatify WhatsApp provider (External / Server API).
  *
- * Whatify exposes a Meta-compatible-ish REST API. This adapter keeps the app
- * provider-agnostic: swap the base URL / auth header to match Whatify's
- * contract. Where exact endpoints differ, map them here so the rest of the
- * codebase never changes.
+ * Docs: https://whatify.in/api-docs
+ * Base: https://whatify.in/api/v1/external   (API-key based)
+ * Auth: X-API-Key: wfy_your_api_key_here
+ *
+ * Send text   -> POST /send-message   { phone, message, whatsapp_account_id? }
+ * Send templ. -> POST /send-template  { phone, template_name, body_params, header_params }
+ * Status      -> GET  /messages/{id}
+ * Templates   -> GET  /templates
+ * Ping        -> GET  /ping
  */
 class WhatifyProvider implements WhatsappProvider
 {
@@ -42,13 +47,25 @@ class WhatifyProvider implements WhatsappProvider
 
     protected function baseUrl(): string
     {
-        return rtrim($this->config()['base_url'] ?? 'https://api.whatify.app/v1', '/');
+        return rtrim($this->config()['base_url']
+            ?? config('whatsapp.providers.whatify.base_url')
+            ?? 'https://whatify.in/api/v1/external', '/');
+    }
+
+    protected function apiKey(): string
+    {
+        $key = $this->config()['api_key'] ?? '';
+
+        abort_unless($key, 500, 'Whatify API key is not configured.');
+
+        return $key;
     }
 
     protected function headers(): array
     {
         return [
-            'Authorization' => 'Bearer '.($this->config()['api_token'] ?? $this->config()['token'] ?? ''),
+            'X-API-Key' => $this->apiKey(),
+            'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ];
     }
@@ -76,11 +93,13 @@ class WhatifyProvider implements WhatsappProvider
         return $response->json();
     }
 
+    /* ------------------------------ Webhooks ----------------------------- */
+
     public function verifyWebhook(array $query): array
     {
         $expected = $this->config()['webhook_verify_token'] ?? null;
-        $token = $query['hub_verify_token'] ?? $query['verify_token'] ?? null;
-        $challenge = $query['hub_challenge'] ?? $query['challenge'] ?? null;
+        $token = $query['verify_token'] ?? $query['hub_verify_token'] ?? null;
+        $challenge = $query['challenge'] ?? $query['hub_challenge'] ?? null;
 
         if ($token && $expected && hash_equals((string) $expected, (string) $token)) {
             return ['challenge' => $challenge, 'success' => true];
@@ -102,23 +121,28 @@ class WhatifyProvider implements WhatsappProvider
 
     public function normalizeInbound(array $payload): Collection
     {
-        // Whatify may deliver { messages: [...] } or a Meta-shaped envelope.
-        $messages = $payload['messages'] ?? $payload['entry'][0]['changes'][0]['value']['messages'] ?? [];
+        // Accept Whatify's { messages: [...] } or a Meta-shaped envelope.
+        $messages = $payload['messages']
+            ?? $payload['data']['messages']
+            ?? $payload['entry'][0]['changes'][0]['value']['messages']
+            ?? [];
 
         $events = collect();
         foreach ($messages as $msg) {
             $events->push(WhatsappEvent::fromProvider('whatify', 'message', [
-                'wa_id' => $msg['from'] ?? $msg['wa_id'] ?? null,
-                'from' => $msg['from'] ?? null,
-                'profile_name' => $msg['profile']['name'] ?? null,
-                'kind' => $msg['type'] ?? ($msg['body'] ? 'text' : 'unknown'),
-                'body' => is_array($msg['text'] ?? null) ? ($msg['text']['body'] ?? null) : ($msg['body'] ?? null),
+                'wa_id' => $msg['from'] ?? $msg['wa_id'] ?? $msg['phone'] ?? null,
+                'from' => $msg['from'] ?? $msg['wa_id'] ?? null,
+                'profile_name' => $msg['profile']['name'] ?? $msg['name'] ?? null,
+                'kind' => $msg['type'] ?? ($msg['message'] ?? $msg['text'] ? 'text' : 'unknown'),
+                'body' => is_string($msg['message'] ?? null)
+                    ? $msg['message']
+                    : ($msg['text']['body'] ?? $msg['body'] ?? null),
                 'media_url' => $msg['media']['url'] ?? null,
                 'media_mime_type' => $msg['media']['mime_type'] ?? null,
-                'message_id' => $msg['id'] ?? null,
+                'message_id' => $msg['id'] ?? $msg['message_id'] ?? null,
                 'context_wa_id' => $msg['context']['from'] ?? null,
                 'reply_to_message_id' => $msg['context']['id'] ?? null,
-                'timestamp' => $msg['timestamp'] ?? null,
+                'timestamp' => $msg['timestamp'] ?? $msg['created_at'] ?? null,
                 'raw' => $msg,
             ]));
         }
@@ -126,13 +150,14 @@ class WhatifyProvider implements WhatsappProvider
         return $events;
     }
 
+    /* ------------------------------ Sending ------------------------------ */
+
     public function sendText(string $to, string $body, ?string $replyTo = null, array $opts = []): array
     {
-        $response = $this->request('POST', '/messages', [
-            'to' => $to,
-            'type' => 'text',
-            'text' => ['body' => $body],
-            'context' => $replyTo ? ['message_id' => $replyTo] : null,
+        $response = $this->request('POST', '/send-message', [
+            'phone' => $to,
+            'message' => $body,
+            'whatsapp_account_id' => $this->config()['whatsapp_account_id'] ?? null,
         ]);
 
         return $this->requireOk($response, 'sendText');
@@ -140,63 +165,83 @@ class WhatifyProvider implements WhatsappProvider
 
     public function sendTemplate(string $to, string $templateName, string $lang, array $components = [], array $opts = []): array
     {
-        $response = $this->request('POST', '/messages', [
-            'to' => $to,
-            'type' => 'template',
-            'template' => [
-                'name' => $templateName,
-                'language' => ['code' => $lang],
-                'components' => $components,
-            ],
+        // Whatify wants body_params / header_params as plain value arrays.
+        $bodyParams = collect($components)->firstWhere('type', 'body')['parameters']
+            ?? collect($components)->firstWhere('type', 'body')['body'][0]['parameters']
+            ?? [];
+
+        $response = $this->request('POST', '/send-template', [
+            'phone' => $to,
+            'template_name' => $templateName,
+            'body_params' => array_map(fn ($p) => $p['text'] ?? $p, $bodyParams),
         ]);
 
         return $this->requireOk($response, 'sendTemplate');
     }
 
+    /**
+     * The Whatify external API exposes send-message for text. Media is not
+     * documented for the external API, so fall back to a text message with the
+     * media URL so it still reaches the user.
+     */
     public function sendMedia(string $to, string $type, string $mediaUrl, ?string $caption = null, ?string $replyTo = null): array
     {
-        $response = $this->request('POST', '/messages', [
-            'to' => $to,
-            'type' => $type,
-            $type => ['link' => $mediaUrl] + ($caption ? ['caption' => $caption] : []),
-            'context' => $replyTo ? ['message_id' => $replyTo] : null,
-        ]);
+        $body = $mediaUrl;
+        if ($caption) {
+            $body = $caption."\n".$mediaUrl;
+        }
 
-        return $this->requireOk($response, 'sendMedia');
+        return $this->sendText($to, $body, $replyTo);
     }
 
     public function sendInteractive(string $to, array $interactive, ?string $replyTo = null): array
     {
-        $response = $this->request('POST', '/messages', [
-            'to' => $to,
-            'type' => 'interactive',
-            'interactive' => $interactive,
-            'context' => $replyTo ? ['message_id' => $replyTo] : null,
-        ]);
+        $body = $interactive['body']['text'] ?? ($interactive['text'] ?? 'Choose an option:');
+        foreach (($interactive['action']['buttons'] ?? []) as $btn) {
+            $body .= "\n• ".($btn['title'] ?? $btn['reply']['title'] ?? '');
+        }
 
-        return $this->requireOk($response, 'sendInteractive');
+        return $this->sendText($to, $body, $replyTo);
     }
+
+    /* ------------------------------ Templates ---------------------------- */
 
     public function createTemplate(array $payload): array
     {
-        return $this->requireOk($this->request('POST', '/message_templates', $payload), 'createTemplate');
+        // The external API documents listing templates but not creating them.
+        // Attempt to forward; if unsupported, surface a clear message.
+        $response = $this->request('POST', '/templates', $payload);
+
+        if ($response->status() === 404) {
+            throw new \RuntimeException('Whatify external API does not support template creation. Create templates in the Whatify dashboard and submit them there.');
+        }
+
+        return $this->requireOk($response, 'createTemplate');
     }
 
     public function templateStatus(string $providerTemplateId): array
     {
-        return $this->requireOk($this->request('GET', '/message_templates/'.$providerTemplateId), 'templateStatus');
+        $response = $this->request('GET', '/templates/'.$providerTemplateId);
+
+        return $this->requireOk($response, 'templateStatus');
     }
 
     public function fetchPhoneNumbers(): array
     {
-        return $this->requireOk($this->request('GET', '/phone_numbers'), 'fetchPhoneNumbers');
+        // Whatify external API doesn't expose phone numbers; return connection info.
+        return [
+            'whatsapp_account_id' => $this->config()['whatsapp_account_id'] ?? null,
+            'display_name' => $this->connection?->display_name,
+        ];
     }
 
     public function ping(): array
     {
         try {
-            $this->fetchPhoneNumbers();
-            return ['ok' => true];
+            $response = $this->request('GET', '/ping');
+            $json = $this->requireOk($response, 'ping');
+
+            return ['ok' => ($json['status'] ?? null) === 'ok'];
         } catch (\Throwable $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         }

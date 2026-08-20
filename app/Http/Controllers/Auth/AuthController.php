@@ -87,7 +87,9 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8'],
             'shopify_access_token' => ['required', 'string'],
             'whatsapp_provider' => ['required', 'in:meta,whatify'],
-            'whatsapp_token' => ['required', 'string'],
+            'whatsapp_token' => ['nullable', 'string'],
+            'whatsapp_api_key' => ['nullable', 'string'],
+            'whatsapp_api_secret' => ['nullable', 'string'],
             'phone_number_id' => ['nullable', 'string'],
         ]);
 
@@ -114,6 +116,8 @@ class AuthController extends Controller
             'provider' => $data['whatsapp_provider'],
             'phone_number_id' => $data['phone_number_id'],
             'token' => $data['whatsapp_token'],
+            'api_key' => $data['whatsapp_api_key'],
+            'api_secret' => $data['whatsapp_api_secret'],
             'is_connected' => false,
         ]);
 

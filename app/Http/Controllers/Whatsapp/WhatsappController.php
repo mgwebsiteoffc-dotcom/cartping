@@ -26,16 +26,29 @@ class WhatsappController extends Controller
 
         $data = $request->validate([
             'provider' => ['required', 'in:meta,whatify'],
-            'token' => ['required', 'string'],
+            'token' => ['nullable', 'string'],
+            'api_key' => ['nullable', 'string'],
+            'api_secret' => ['nullable', 'string'],
             'phone_number_id' => ['nullable', 'string'],
             'waba_id' => ['nullable', 'string'],
         ]);
+
+        $isWhatify = $data['provider'] === WhatsappConnection::PROVIDER_WHATIFY;
+        $credential = $isWhatify ? ($data['api_key'] ?? '') : ($data['token'] ?? '');
+
+        if (empty($credential)) {
+            return back()->withErrors(['whatsapp' => $isWhatify
+                ? 'Please enter your Whatify API key.'
+                : 'Please enter your Meta access token.']);
+        }
 
         $connection = WhatsappConnection::updateOrCreate(
             ['store_id' => $store->id],
             [
                 'provider' => $data['provider'],
                 'token' => $data['token'],
+                'api_key' => $data['api_key'],
+                'api_secret' => $data['api_secret'],
                 'phone_number_id' => $data['phone_number_id'],
                 'waba_id' => $data['waba_id'],
                 'is_connected' => false,

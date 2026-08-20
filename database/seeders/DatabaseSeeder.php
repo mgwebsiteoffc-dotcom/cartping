@@ -7,14 +7,18 @@ use App\Models\Automation;
 use App\Models\KnowledgeBaseChunk;
 use App\Models\Store;
 use App\Models\Template;
+use App\Models\User;
 use App\Models\WidgetConfig;
 use App\Services\Templates\ComplianceChecker;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->seedUsers();
+
         // Demo tenant with sensible defaults so a fresh install is explorable.
         $store = Store::firstOrCreate(
             ['myshopify_domain' => 'demo.myshopify.com'],
@@ -26,6 +30,8 @@ class DatabaseSeeder extends Seeder
                 'onboarding_complete' => true,
             ]
         );
+
+        $this->seedStaffFor($store);
 
         AgentConfig::firstOrCreate(['store_id' => $store->id], [
             'name' => 'Demo Assistant',
@@ -44,6 +50,75 @@ class DatabaseSeeder extends Seeder
         $this->seedAutomations($store);
         $this->seedTemplates($store);
         $this->seedKnowledgeBase($store);
+    }
+
+    /**
+     * Platform-level users with the standard role hierarchy:
+     *   superadmin  – full platform access (no store scope)
+     *   admin       – platform staff (tenant management)
+     *   owner/admin/agent/viewer – per-store roles
+     */
+    protected function seedUsers(): void
+    {
+        $users = [
+            [
+                'name' => 'Super Admin',
+                'email' => 'superadmin@cartping.test',
+                'password' => 'superadmin123',
+                'role' => 'superadmin',
+            ],
+            [
+                'name' => 'Platform Admin',
+                'email' => 'admin@cartping.test',
+                'password' => 'admin123456',
+                'role' => 'admin',
+            ],
+            [
+                'name' => 'Support Agent',
+                'email' => 'agent@cartping.test',
+                'password' => 'agent123456',
+                'role' => 'agent',
+            ],
+        ];
+
+        foreach ($users as $u) {
+            User::firstOrCreate(
+                ['email' => $u['email']],
+                [
+                    'store_id' => null, // platform-level
+                    'name' => $u['name'],
+                    'password' => Hash::make($u['password']),
+                    'role' => $u['role'],
+                    'active' => true,
+                ]
+            );
+        }
+    }
+
+    /**
+     * Per-store staff seats for the demo tenant (owner/admin/agent/viewer).
+     */
+    protected function seedStaffFor(Store $store): void
+    {
+        $staff = [
+            ['name' => 'Store Owner', 'email' => 'owner@demo.myshopify.com', 'role' => 'owner'],
+            ['name' => 'Store Admin', 'email' => 'staff-admin@demo.myshopify.com', 'role' => 'admin'],
+            ['name' => 'Sales Agent', 'email' => 'staff-agent@demo.myshopify.com', 'role' => 'agent'],
+            ['name' => 'Viewer', 'email' => 'staff-viewer@demo.myshopify.com', 'role' => 'viewer'],
+        ];
+
+        foreach ($staff as $s) {
+            User::firstOrCreate(
+                ['email' => $s['email']],
+                [
+                    'store_id' => $store->id,
+                    'name' => $s['name'],
+                    'password' => Hash::make('password123'),
+                    'role' => $s['role'],
+                    'active' => true,
+                ]
+            );
+        }
     }
 
     protected function seedAutomations(Store $store): void
