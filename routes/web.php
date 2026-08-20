@@ -53,6 +53,10 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('manual', [AuthController::class, 'manualConnect']);
 });
 
+// Compatibility alias: allow the OAuth callback to be whitelisted at either
+// {app}/auth/shopify/callback (canonical) OR {app}/shopify/callback.
+Route::get('/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.callback.legacy');
+
 /*
 |--------------------------------------------------------------------------
 | Merchant dashboard (authenticated store)

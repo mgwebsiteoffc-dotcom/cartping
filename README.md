@@ -390,8 +390,16 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   it's what creates this error on every code change.
 - **`Oauth error invalid_request: The redirect_uri is not whitelisted`** — the
   OAuth `redirect_uri` (default `{APP_URL}/auth/shopify/callback`) isn't listed in
-  your Shopify app's **Allowed redirection URL(s)**. Add it there, and make sure
-  `APP_URL` (or `SHOPIFY_REDIRECT_URI`) in `.env` exactly matches the scheme/domain.
+  your Shopify app's **Allowed redirection URL(s)**. Fix:
+  1. In `.env`, set `APP_URL` to your real domain (e.g. `https://cartping.rankboosterinfotech.in`).
+     It **must not** be a placeholder like `https://cartping.yourdomain.com`.
+  2. In the Shopify Partner dashboard → App setup → **Allowed redirection URL(s)**,
+     add exactly `https://your-real-domain/auth/shopify/callback`
+     (this app also accepts `https://your-real-domain/shopify/callback` as an alias).
+  3. Run `composer deploy` (clears the config cache — a cached `APP_URL` from an
+     old deploy is a very common cause of this).
+  The redirect URI Shopify receives must match the whitelisted one exactly on
+  scheme, host, port and path.
 - **`Data truncated for column 'user_id'` / `SQLSTATE[01000]` on `sessions`** —
   `sessions.user_id` was created as a bigint but Store/User use UUID primary
   keys, so the UUID was truncated when writing the session. It's now a `string`
