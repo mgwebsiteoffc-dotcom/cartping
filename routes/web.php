@@ -19,18 +19,21 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    // Authenticated merchants (installed via OAuth) go straight into the app —
-    // not back to the marketing landing page. Incomplete setup → onboarding.
+    // Embedded admin loads (with a session token) must land in the app, not the
+    // marketing page. Auth is handled by the shopify.session middleware below.
     $store = request()->user('store');
 
     if ($store) {
-        return $store->onboarding_complete
-            ? redirect()->route('dashboard.index')
-            : redirect()->route('onboarding.index');
+        // Preserve the session-token/host/shop query params through the redirect —
+        // they're required to authenticate the next page load inside the admin
+        // iframe (cookies are blocked there).
+        $query = array_filter(request()->only(['id_token', 'session', 'host', 'shop']));
+
+        return redirect()->route('dashboard.index', $query);
     }
 
     return view('marketing.landing');
-})->name('home');
+})->name('home')->middleware('shopify.session');
 
 /*
 |--------------------------------------------------------------------------

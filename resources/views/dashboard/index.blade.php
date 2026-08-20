@@ -6,9 +6,20 @@
     <div class="row">
         <h1>Dashboard</h1>
         @if (! $onboardingStep >= 6)
-            <a class="btn" href="{{ route('onboarding.index') }}">Continue setup →</a>
+            <a class="btn" href="{{ route('onboarding.index') }}">Complete setup →</a>
         @endif
     </div>
+
+    @if (! $whatsappConnected)
+        <section class="card setup-banner">
+            <h2>⚡ Connect WhatsApp to start</h2>
+            <p>Your store is connected. Now link a WhatsApp provider (Meta Cloud API or Whatify) to begin automating messages.</p>
+            <div class="actions">
+                <a class="btn primary" href="{{ route('settings.whatsapp') }}">Set up WhatsApp</a>
+                <a class="btn" href="{{ route('onboarding.index') }}">Full onboarding wizard</a>
+            </div>
+        </section>
+    @endif
 
     <div class="cards">
         <div class="stat"><span>Open conversations</span><strong>{{ $conversationsOpen }}</strong></div>

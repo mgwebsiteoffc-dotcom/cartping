@@ -28,6 +28,8 @@ class ShopifyController extends Controller
             'conversationsOpen' => $conversationsOpen,
             'ordersToday' => $ordersToday,
             'onboardingStep' => $store->onboarding_step,
+            'whatsappConnected' => (bool) $store->whatsappConnection?->is_connected,
+            'shopifyConnected' => (bool) $store->shopifyConnection?->access_token,
         ]);
     }
 

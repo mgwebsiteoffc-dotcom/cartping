@@ -123,15 +123,25 @@ class ShopifyAuthController extends Controller
 
         Auth::guard('store')->login($store);
 
-        // Embedded app: redirect back into the Shopify admin at the app's entry
-        // URL so App Bridge takes over (no bare marketing page). Non-embedded
-        // installs simply land on onboarding.
-        $entry = $store->onboarding_complete ? 'dashboard.index' : 'onboarding.index';
-
+        // Embedded app: redirect back into the Shopify admin. Shopify will load
+        // our app inside the admin iframe and append a fresh session token, which
+        // auto-authenticates the store (cookies are blocked in the iframe).
+        // Uses the current admin URL format: admin.shopify.com/store/{shop}/apps/{key}
         if ($request->query('embedded') || config('shopify.embedded')) {
-            return redirect()->away('https://'.$shop.'/admin/apps/'.config('shopify.api_key').'?redirect_to='.urlencode(url()->route($entry, [], true)));
+            $shopName = str_replace('.myshopify.com', '', $shop);
+            $appUrl = 'https://admin.shopify.com/store/'.$shopName.'/apps/'.config('shopify.api_key');
+
+            return redirect()->away($appUrl);
         }
 
-        return redirect()->route($entry);
+        return redirect()->route('dashboard.index');
+    }
+
+    /**
+     * Normalize a shop domain (e.g. "mannatgupta-stagee.myshopify.com").
+     */
+    protected function shopName(string $shop): string
+    {
+        return str_replace('.myshopify.com', '', strtolower(trim($shop)));
     }
 }
