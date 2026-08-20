@@ -218,10 +218,11 @@ There are also two more shared-host fixes baked into the repo:
    duplicate provider registration and broke console-command loading — which
    produced `There are no commands defined in the "package" namespace` during
    `composer update`. App providers live in `bootstrap/providers.php`.
-2. **Tolerant package discovery.** The `post-autoload-dump` hook now runs
-   `artisan-discover.php` (a wrapper that catches failures instead of aborting
-   the install). Laravel rebuilds the package manifest lazily on the first
-   `php artisan` run anyway, so a discovery hiccup never blocks Composer.
+2. **No app-booting Composer hook.** The `post-autoload-dump` hook is removed,
+   so `composer install/update` never boots the framework (a shared host where
+   the app isn't fully bootable mid-install would otherwise error — e.g. the
+   `Target class [files] does not exist` you can hit if a hook boots the app).
+   Laravel discovers packages lazily on the first real `php artisan` run.
 
 Server steps:
 
@@ -231,15 +232,14 @@ cd ~/public_html/cartping
 # 0. Pull the fixes
 git pull origin arena/01a01e0f-cartping
 
-# 1. Environment FIRST (before composer, so package:discover can boot)
+# 1. Environment FIRST (so artisan commands have an APP_KEY/DB settings)
 cp .env.example .env
 php artisan key:generate
 
-# 2. Dependencies — if a composer.lock already exists on the server use install;
-#    otherwise update. Either way the tolerant discovery hook prevents failures.
+# 2. Dependencies — no boot hook now, so this succeeds even if the app can't
+#    boot yet. If a composer.lock exists on the server use install, else update.
 composer install --no-dev --optimize-autoloader
-#   or (first time / no lock):
-#   composer update --no-dev
+#   or (first time / no lock):  composer update --no-dev
 
 # 3. Database — create a MySQL DB in cPanel, then edit .env:
 #      DB_HOST=localhost   DB_DATABASE=your_db   DB_USERNAME=your_user   DB_PASSWORD=your_pass
@@ -295,8 +295,12 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
 - **`There are no commands defined in the "package" namespace`** during
   `composer update` — caused by the old-style full provider list in
   `config/app.php` (now the modern empty `providers`/`aliases` layout). Pull the
-  latest code; the `post-autoload-dump` hook is also now non-fatal
-  (`artisan-discover.php`).
+  latest code.
+- **`Target class [files] does not exist` (or any `Target class [...]` right
+  after composer)** — this only happened because a Composer hook booted the app
+  mid-install. The `post-autoload-dump` hook has been removed, so `composer
+  install/update` no longer boots Laravel. Package discovery runs lazily on the
+  first `php artisan` command.
 - **`Target class [App\...] does not exist`** — run
   `composer dump-autoload` (or `php artisan optimize:clear`).
 
