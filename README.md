@@ -314,6 +314,11 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   ```
 - **`Target class [App\...] does not exist`** — run
   `composer dump-autoload` (or `php artisan optimize:clear`).
+- **`Data truncated for column 'user_id'` / `SQLSTATE[01000]` on `sessions`** —
+  `sessions.user_id` was created as a bigint but Store/User use UUID primary
+  keys, so the UUID was truncated when writing the session. It's now a `string`
+  in the framework migration, plus `2026_01_01_000024_alter_sessions_user_id_to_uuid_string.php`
+  converts already-migrated databases. Run `php artisan migrate` to apply.
 
 ---
 
