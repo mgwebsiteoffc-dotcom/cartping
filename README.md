@@ -267,12 +267,17 @@ composer install --no-dev --optimize-autoloader
 #    and run migrations:
 php artisan migrate --seed
 
-# 4. Storage + caches
+# 4. Storage + deploy (clears stale route/config/view caches, migrates, re-caches)
 php artisan storage:link
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+composer deploy
 ```
+
+> **Always run `composer deploy` (or `php artisan optimize:clear`) after pulling
+> new code.** If you skip it, Laravel keeps serving the **stale compiled route
+> cache** from `bootstrap/cache/routes-v7.php`, which shows errors like
+> `Route [settings.shopify] not defined` on pages that use new routes. The
+> `deploy` script deliberately does **not** run `route:cache` (route caching is
+> the usual cause of these "route not defined" surprises on shared hosting).
 
 **Committing a `composer.lock` (recommended):** run `composer update` once on
 your local machine (Laragon) so it generates `composer.lock`, then commit it:
@@ -335,6 +340,11 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   ```
 - **`Target class [App\...] does not exist`** — run
   `composer dump-autoload` (or `php artisan optimize:clear`).
+- **`Route [xxx] not defined` (e.g. `Route [settings.shopify] not defined`)** —
+  the route IS in `routes/web.php`, but the server is serving a **stale compiled
+  route cache**. Run `composer deploy` (or `php artisan optimize:clear`). If you
+  previously ran `php artisan route:cache`, stop doing that on shared hosting —
+  it's what creates this error on every code change.
 - **`Data truncated for column 'user_id'` / `SQLSTATE[01000]` on `sessions`** —
   `sessions.user_id` was created as a bigint but Store/User use UUID primary
   keys, so the UUID was truncated when writing the session. It's now a `string`

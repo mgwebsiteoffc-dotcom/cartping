@@ -48,6 +48,12 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#a7f3d0\" \"php artisan serve\" \"php artisan queue:work --tries=3 --queue=high,default,webhooks,low\" \"php artisan reverb:start --debug\" \"npm run dev\""
+        ],
+        "deploy": [
+            "@php artisan optimize:clear",
+            "@php artisan migrate --force",
+            "@php artisan config:cache",
+            "@php artisan view:cache"
         ]
     },
     "extra": {

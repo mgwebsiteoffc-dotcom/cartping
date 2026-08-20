@@ -73,9 +73,11 @@ Route::middleware('auth.store')->group(function () {
         Route::get('complete', [OnboardingController::class, 'complete'])->name('complete');
     });
 
-    Route::middleware('provisioned')->group(function () {
-        Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
+    Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
+    Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
+    Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
 
+    Route::middleware('provisioned')->group(function () {
         Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
         Route::get('/inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
         Route::post('/inbox/{conversation}/takeover', [InboxController::class, 'takeover'])->name('inbox.takeover');
@@ -103,8 +105,5 @@ Route::middleware('auth.store')->group(function () {
         Route::get('/widget', [WidgetConfigController::class, 'index'])->name('widget.index');
         Route::post('/widget', [WidgetConfigController::class, 'update'])->name('widget.update');
         Route::post('/widget/install', [WidgetConfigController::class, 'install'])->name('widget.install');
-
-        Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
-        Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
     });
 });
