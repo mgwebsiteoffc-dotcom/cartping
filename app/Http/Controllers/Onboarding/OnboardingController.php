@@ -69,6 +69,7 @@ class OnboardingController extends Controller
             'api_secret' => ['nullable', 'string'],
             'phone_number_id' => ['nullable', 'string'],
             'waba_id' => ['nullable', 'string'],
+            'base_url' => ['nullable', 'url'],
         ]);
 
         $isWhatify = $data['provider'] === WhatsappConnection::PROVIDER_WHATIFY;
@@ -90,6 +91,8 @@ class OnboardingController extends Controller
                 'api_secret' => $data['api_secret'],
                 'phone_number_id' => $data['phone_number_id'],
                 'waba_id' => $data['waba_id'],
+                // Always pin the live Whatify endpoint.
+                'base_url' => $isWhatify ? 'https://whatify.in/api/v1/external' : ($data['base_url'] ?? null),
                 'is_connected' => false,
             ]
         );

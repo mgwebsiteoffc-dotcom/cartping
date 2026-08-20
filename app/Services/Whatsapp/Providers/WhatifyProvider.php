@@ -45,11 +45,27 @@ class WhatifyProvider implements WhatsappProvider
             ?: config('whatsapp.providers.whatify');
     }
 
+    /**
+     * Resolve the Whatify external API base URL.
+     *
+     * The correct endpoint is https://whatify.in/api/v1/external. Older versions
+     * / old stored config may reference the deprecated api.whatify.app host — we
+     * normalise those away so the integration always uses the live endpoint.
+     */
     protected function baseUrl(): string
     {
-        return rtrim($this->config()['base_url']
+        $configured = $this->config()['base_url']
             ?? config('whatsapp.providers.whatify.base_url')
-            ?? 'https://whatify.in/api/v1/external', '/');
+            ?? '';
+
+        $url = strtolower(trim($configured));
+
+        // Ignore the deprecated api.whatify.app host (does not exist anymore).
+        if ($url === '' || str_contains($url, 'api.whatify.app')) {
+            $url = 'https://whatify.in/api/v1/external';
+        }
+
+        return rtrim($url, '/');
     }
 
     protected function apiKey(): string
