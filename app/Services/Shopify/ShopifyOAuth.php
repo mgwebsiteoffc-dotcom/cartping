@@ -58,6 +58,10 @@ class ShopifyOAuth
 
     /**
      * Exchange the authorization code for an offline access token.
+     *
+     * As of April 1, 2026 new public apps MUST use expiring offline access
+     * tokens. We send `expiring => 1`, and Shopify returns:
+     *   { access_token, expires_in, refresh_token, refresh_token_expires_in }
      */
     public function exchangeCode(string $shop, string $code): array
     {
@@ -65,6 +69,25 @@ class ShopifyOAuth
             'client_id' => $this->apiKey,
             'client_secret' => $this->apiSecret,
             'code' => $code,
+            'expiring' => 1,
+        ]);
+
+        $response->throw();
+
+        return $response->json();
+    }
+
+    /**
+     * Refresh an expiring offline access token using the refresh token.
+     * Returns a fresh { access_token, expires_in, refresh_token, refresh_token_expires_in }.
+     */
+    public function refreshAccessToken(string $shop, string $refreshToken): array
+    {
+        $response = Http::post("https://{$shop}/admin/oauth/access_token", [
+            'client_id' => $this->apiKey,
+            'client_secret' => $this->apiSecret,
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken,
         ]);
 
         $response->throw();
@@ -115,9 +138,13 @@ class ShopifyOAuth
                 'mode' => ShopifyConnection::MODE_OAUTH,
                 'shop' => $shop,
                 'access_token' => $tokenPayload['access_token'] ?? null,
+                'refresh_token' => $tokenPayload['refresh_token'] ?? null,
                 'scope' => $scope,
-                'expires_at' => $tokenPayload['expires_in'] ?? null
+                'expires_at' => isset($tokenPayload['expires_in'])
                     ? now()->addSeconds((int) $tokenPayload['expires_in'])
+                    : null,
+                'refresh_token_expires_at' => isset($tokenPayload['refresh_token_expires_in'])
+                    ? now()->addSeconds((int) $tokenPayload['refresh_token_expires_in'])
                     : null,
             ]
         );

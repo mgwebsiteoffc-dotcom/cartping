@@ -7,6 +7,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css'])
     @yield('head')
+    @if (config('shopify.embedded', true) && config('shopify.api_key'))
+        {{-- Embedded Shopify app: expose the App Bridge global so embedded pages
+             can use the admin SDK (toast, navigation, redirect). --}}
+        <script>
+            window.shopify = window.shopify || {};
+            window.shopify.shop = "{{ $store->myshopify_domain ?? '' }}";
+            window.shopify.apiKey = "{{ config('shopify.api_key') }}";
+        </script>
+        <script src="https://cdn.shopify.com/shopifycloud/shopify-app-bridge.js"></script>
+    @endif
 </head>
 <body class="app">
 <div class="shell">
@@ -21,7 +31,8 @@
             <a href="{{ route('analytics.index') }}" class="{{ request()->routeIs('analytics*') ? 'active' : '' }}">Analytics</a>
             <a href="{{ route('agent.index') }}" class="{{ request()->routeIs('agent*') ? 'active' : '' }}">AI Agent</a>
             <a href="{{ route('widget.index') }}" class="{{ request()->routeIs('widget*') ? 'active' : '' }}">Widget</a>
-            <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings*') ? 'active' : '' }}">WhatsApp</a>
+            <a href="{{ route('settings.shopify') }}" class="{{ request()->routeIs('settings.shopify') ? 'active' : '' }}">Shopify</a>
+            <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp') ? 'active' : '' }}">WhatsApp</a>
         </nav>
         <form method="POST" action="{{ route('auth.logout') }}">
             @csrf

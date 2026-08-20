@@ -184,6 +184,27 @@ fires a Meta CAPI `Purchase` for ROAS.
 
 ---
 
+## Shopify OAuth (2026 policy)
+
+As of **April 1, 2026**, Shopify requires **all new public apps** to use
+**expiring offline access tokens** with a **refresh-token flow** (non-expiring
+offline tokens show up as "deprecated offline tokens" in the API Health
+monitor). This app implements that:
+
+- `ShopifyOAuth::exchangeCode()` sends **`expiring => 1`** and stores the returned
+  `access_token` (≈60 min), `refresh_token` (90 days) and both expiries on
+  `shopify_connections`.
+- `ShopifyClient` **auto-refreshes** the token a few minutes before expiry, guards
+  concurrent refreshes with a per-shop lock (`shopify_refresh_{shop}`), persists
+  atomically, and retries once on a 401.
+- `config/shopify.php` uses API version **`2026-07`** (current). Bump `SHOPIFY_API_VERSION`
+  in `.env` each quarter.
+- Embedded installs: the OAuth callback redirects back into the Shopify admin at
+  the app URL, and the app layout loads Shopify **App Bridge** for embedded use.
+
+> Custom App (manual-token) mode and merchant-created apps are **not** affected by
+> the expiring-token rule — they keep using a pasted admin token as-is.
+
 ## Flow integration (Shopify Flow)
 
 Custom app triggers/actions are the webhooks this app registers:

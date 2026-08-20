@@ -92,6 +92,15 @@ class ShopifyAuthController extends Controller
 
         Auth::guard('store')->login($store);
 
-        return redirect()->route('onboarding.index');
+        // Embedded app: redirect back into the Shopify admin at the app's entry
+        // URL so App Bridge takes over (no bare marketing page). Non-embedded
+        // installs simply land on onboarding.
+        $entry = $store->onboarding_complete ? 'dashboard.index' : 'onboarding.index';
+
+        if ($request->query('embedded') || config('shopify.embedded')) {
+            return redirect()->away('https://'.$shop.'/admin/apps/'.config('shopify.api_key').'?redirect_to='.urlencode(url()->route($entry, [], true)));
+        }
+
+        return redirect()->route($entry);
     }
 }

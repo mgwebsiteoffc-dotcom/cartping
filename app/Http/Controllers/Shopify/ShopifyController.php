@@ -30,4 +30,34 @@ class ShopifyController extends Controller
             'onboardingStep' => $store->onboarding_step,
         ]);
     }
+
+    /**
+     * Shopify connection & token management. Shows the auth mode, whether the
+     * token is the modern expiring offline token, when it expires, and lets the
+     * merchant re-authorize via OAuth (or update a Custom App token).
+     */
+    public function settings()
+    {
+        $store = request()->user('store');
+        $connection = $store->shopifyConnection;
+
+        $client = null;
+        $shop = null;
+
+        if ($connection?->access_token) {
+            try {
+                $client = \App\Services\Shopify\ShopifyClient::for($store);
+                $shop = $client->shopInfo();
+            } catch (\Throwable $e) {
+                $shop = null;
+            }
+        }
+
+        return view('settings.shopify', [
+            'store' => $store,
+            'connection' => $connection,
+            'shop' => $shop,
+            'oauthConfigured' => (new \App\Services\Shopify\ShopifyOAuth())->isConfigured(),
+        ]);
+    }
 }

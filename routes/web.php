@@ -18,7 +18,19 @@ use Illuminate\Support\Facades\Route;
 | Public / marketing
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => view('marketing.landing'))->name('home');
+Route::get('/', function () {
+    // Authenticated merchants (installed via OAuth) go straight into the app —
+    // not back to the marketing landing page. Incomplete setup → onboarding.
+    $store = request()->user('store');
+
+    if ($store) {
+        return $store->onboarding_complete
+            ? redirect()->route('dashboard.index')
+            : redirect()->route('onboarding.index');
+    }
+
+    return view('marketing.landing');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +74,8 @@ Route::middleware('auth.store')->group(function () {
     });
 
     Route::middleware('provisioned')->group(function () {
+        Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
+
         Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
         Route::get('/inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
         Route::post('/inbox/{conversation}/takeover', [InboxController::class, 'takeover'])->name('inbox.takeover');

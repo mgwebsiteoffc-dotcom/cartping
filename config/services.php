@@ -6,7 +6,7 @@ return [
         'api_key' => env('SHOPIFY_API_KEY'),
         'api_secret' => env('SHOPIFY_API_SECRET'),
         'scopes' => explode(',', env('SHOPIFY_API_SCOPES', '')),
-        'api_version' => env('SHOPIFY_API_VERSION', '2024-10'),
+        'api_version' => env('SHOPIFY_API_VERSION', '2026-07'),
         'embedded' => env('SHOPIFY_EMBEDDED', true),
     ],
 
