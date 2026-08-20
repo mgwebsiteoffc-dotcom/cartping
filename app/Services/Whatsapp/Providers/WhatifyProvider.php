@@ -238,12 +238,21 @@ class WhatifyProvider implements WhatsappProvider
     public function ping(): array
     {
         try {
-            $response = $this->request('GET', '/ping');
-            $json = $this->requireOk($response, 'ping');
+            // Short, non-retrying timeout so the admin iframe never hangs.
+            $response = Http::withHeaders([
+                'X-API-Key' => $this->apiKey(),
+                'Accept' => 'application/json',
+            ])->timeout(8)->get($this->baseUrl().'/ping');
 
-            return ['ok' => ($json['status'] ?? null) === 'ok'];
+            if ($response->failed()) {
+                return ['ok' => false, 'error' => 'Whatify returned HTTP '.$response->status().'. Check your API key.'];
+            }
+
+            $json = $response->json();
+
+            return ['ok' => ($json['status'] ?? null) === 'ok', 'error' => null];
         } catch (\Throwable $e) {
-            return ['ok' => false, 'error' => $e->getMessage()];
+            return ['ok' => false, 'error' => 'Whatify unreachable: '.$e->getMessage()];
         }
     }
 }

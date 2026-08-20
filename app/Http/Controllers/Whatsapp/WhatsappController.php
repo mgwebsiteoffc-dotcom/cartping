@@ -42,6 +42,11 @@ class WhatsappController extends Controller
                 : 'Please enter your Meta access token.']);
         }
 
+        // Meta also needs the phone number ID to connect.
+        if (! $isWhatify && empty($data['phone_number_id'])) {
+            return back()->withErrors(['whatsapp' => 'Meta requires a Phone number ID. Find it in your WhatsApp Business account (Meta) → API Setup.']);
+        }
+
         $connection = WhatsappConnection::updateOrCreate(
             ['store_id' => $store->id],
             [
@@ -56,10 +61,20 @@ class WhatsappController extends Controller
         );
 
         $ping = $whatsapp->forConnection($connection)->ping();
-        $connection->update(['is_connected' => $ping['ok'] ?? false, 'connected_at' => now()]);
 
-        return back()->with('status', $ping['ok'] ?? false
-            ? 'WhatsApp connected successfully.'
-            : 'Connected but the provider ping failed — check your credentials.');
+        // Persist the attempt so the user keeps their input, but reflect the
+        // connection status honestly.
+        $connection->update([
+            'is_connected' => (bool) ($ping['ok'] ?? false),
+            'connected_at' => ($ping['ok'] ?? false) ? now() : $connection->connected_at,
+        ]);
+
+        if (! ($ping['ok'] ?? false)) {
+            $detail = $ping['error'] ?? 'unknown error';
+
+            return back()->withErrors(['whatsapp' => 'Provider ping failed. '.$detail]);
+        }
+
+        return back()->with('status', 'WhatsApp connected successfully.');
     }
 }

@@ -323,8 +323,23 @@ class MetaCloudProvider implements WhatsappProvider
     public function ping(): array
     {
         try {
-            $this->fetchPhoneNumbers();
-            return ['ok' => true];
+            // Short, non-retrying timeout so the admin iframe never hangs waiting
+            // on a slow provider. Missing phone_number_id produces a clear error.
+            if (! $this->connection?->phone_number_id) {
+                return ['ok' => false, 'error' => 'Phone number ID is required for Meta.'];
+            }
+
+            $url = rtrim($this->baseUrl, '/').'/'.$this->graphVersion.'/'.$this->phoneNumberId();
+
+            $response = Http::withHeaders(['Authorization' => 'Bearer '.$this->token()])
+                ->timeout(8)
+                ->get($url);
+
+            if ($response->successful()) {
+                return ['ok' => true];
+            }
+
+            return ['ok' => false, 'error' => 'Meta returned HTTP '.$response->status().'. Check your token & phone number ID.'];
         } catch (\Throwable $e) {
             return ['ok' => false, 'error' => $e->getMessage()];
         }
