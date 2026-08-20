@@ -224,15 +224,20 @@ class WhatifyProvider implements WhatsappProvider
 
     public function createTemplate(array $payload): array
     {
-        // The external API documents listing templates but not creating them.
-        // Attempt to forward; if unsupported, surface a clear message.
-        $response = $this->request('POST', '/templates', $payload);
+        // The Whatify external API only supports GET /templates — it does NOT
+        // expose a create-template endpoint. Templates must be created in the
+        // Whatify dashboard. We return a structured "external" marker so the
+        // caller can mark the template as dashboard-managed instead of failing.
+        throw new \App\Exceptions\TemplateMustBeCreatedInDashboardException(
+            'Whatify templates must be created in the Whatify dashboard (the external API only lists templates). Paste the approved template name here after creating it in Whatify.'
+        );
+    }
 
-        if ($response->status() === 404) {
-            throw new \RuntimeException('Whatify external API does not support template creation. Create templates in the Whatify dashboard and submit them there.');
-        }
+    public function listTemplates(): array
+    {
+        $response = $this->request('GET', '/templates');
 
-        return $this->requireOk($response, 'createTemplate');
+        return $this->requireOk($response, 'listTemplates')['templates'] ?? [];
     }
 
     public function templateStatus(string $providerTemplateId): array

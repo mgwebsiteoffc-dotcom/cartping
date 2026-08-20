@@ -42,9 +42,13 @@ class InboxController extends Controller
     {
         $this->authorize('view', $conversation);
 
+        $store = $conversation->store;
+
         return view('inbox.show', [
-            'store' => $conversation->store,
+            'store' => $store,
             'conversation' => $conversation->load(['contact.shopifyCustomer', 'messages', 'labels', 'assignee']),
+            'agents' => $store->users ?? collect(),
+            'labels' => Label::where('store_id', $store->id)->get(),
         ]);
     }
 

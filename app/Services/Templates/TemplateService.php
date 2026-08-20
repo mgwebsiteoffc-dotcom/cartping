@@ -79,18 +79,27 @@ class TemplateService
 
     /**
      * Multi-level approval. Levels progress: internal -> compliance -> provider.
+     * Idempotent: approving a level already reached is a no-op (returns the
+     * template unchanged) rather than throwing.
      */
     public function approve(Store $store, Template $template, string $level, ?string $reviewer = null, ?string $comment = null): Template
     {
         $order = ['internal' => 1, 'compliance' => 2, 'provider' => 3];
-        $current = $order[$template->approval_level] ?? 0;
 
         if (! isset($order[$level])) {
             throw new \InvalidArgumentException("Unknown approval level [{$level}].");
         }
 
-        if ($order[$level] !== $current + 1) {
-            throw new \RuntimeException("Out-of-order approval: {$template->approval_level} -> {$level}.");
+        $current = $order[$template->approval_level] ?? 0;
+
+        // Already at/after this level → nothing to do (idempotent).
+        if ($order[$level] <= $current) {
+            return $template;
+        }
+
+        // Jumping more than one level isn't allowed.
+        if ($order[$level] > $current + 1) {
+            throw new \RuntimeException("Out-of-order approval: {$template->approval_level} -> {$level}. Please approve the intermediate step first.");
         }
 
         TemplateApproval::create([
@@ -149,6 +158,16 @@ class TemplateService
                 'status' => 'pending',
                 'provider_status' => 'in_review',
             ]);
+        } catch (\App\Exceptions\TemplateMustBeCreatedInDashboardException $e) {
+            // Provider (e.g. Whatify) has no API to create templates — mark it
+            // for dashboard creation so the merchant knows what to do.
+            $template->update([
+                'status' => 'draft',
+                'lifecycle' => 'dashboard_required',
+                'metadata' => array_merge($template->metadata ?? [], ['provider_note' => $e->getMessage()]),
+            ]);
+
+            return $template;
         } catch (\Throwable $e) {
             $template->update(['status' => 'draft', 'lifecycle' => 'draft']);
             throw $e;

@@ -39,7 +39,8 @@
         <h2>Next steps</h2>
         <ul>
             <li><a href="{{ route('inbox.index') }}">Open the inbox</a> to monitor conversations</li>
-            <li><a href="{{ route('templates.index') }}">Create &amp; approve message templates</a></li>
+            <li><a href="{{ route('products.index') }}">View your synced product catalog</a></li>
+            <li><a href="{{ route('templates.index') }}">Create &amp; approve message templates (AI or manual)</a></li>
             <li><a href="{{ route('ctwa.index') }}">Set up a Click-to-WhatsApp campaign</a></li>
             <li><a href="{{ route('analytics.index') }}">Explore full analytics</a></li>
         </ul>

@@ -27,6 +27,41 @@ class TemplateController extends Controller
     }
 
     /**
+     * Create a template manually (like Aisensy/Wati) — no AI needed.
+     */
+    public function store(Request $request)
+    {
+        $store = request()->user('store');
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'category' => ['required', 'in:MARKETING,UTILITY,AUTHENTICATION'],
+            'language' => ['nullable', 'string', 'max:10'],
+            'body' => ['required', 'string'],
+        ]);
+
+        $template = Template::create([
+            'store_id' => $store->id,
+            'name' => \Illuminate\Support\Str::slug($data['name'], '_'),
+            'display_name' => $data['display_name'] ?: $data['name'],
+            'category' => $data['category'],
+            'language' => $data['language'] ?: 'en',
+            'body' => $data['body'],
+            'status' => 'draft',
+            'lifecycle' => 'draft',
+            'approval_level' => 'internal',
+        ]);
+
+        $template->update([
+            'compliance_issues' => app(\App\Services\Templates\ComplianceChecker::class)
+                ->check($data['body'], ['category' => $data['category']]),
+        ]);
+
+        return back()->with('status', 'Template created. Review compliance and submit for approval.');
+    }
+
+    /**
      * AI-generate a template (with A/B variants) from a merchant brief.
      */
     public function generate(Request $request)

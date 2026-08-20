@@ -82,7 +82,10 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::get('complete', [OnboardingController::class, 'complete'])->name('complete');
     });
 
-    Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
+        Route::get('/products', [\App\Http\Controllers\Shopify\ProductController::class, 'index'])->name('products.index');
+        Route::post('/products/sync', [\App\Http\Controllers\Shopify\ProductController::class, 'sync'])->name('products.sync');
+
+        Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
     Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
     Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
 
@@ -97,6 +100,7 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::get('/inbox/{conversation}/suggest', [InboxController::class, 'suggest'])->name('inbox.suggest');
 
         Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
+        Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
         Route::post('/templates/generate', [TemplateController::class, 'generate'])->name('templates.generate');
         Route::post('/templates/{template}/ab', [TemplateController::class, 'createAbVariants'])->name('templates.ab');
         Route::post('/templates/{template}/submit', [TemplateController::class, 'submit'])->name('templates.submit');
