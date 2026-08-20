@@ -217,6 +217,58 @@ Custom app triggers/actions are the webhooks this app registers:
 
 ---
 
+## Deploying to shared hosting (cPanel)
+
+Shared cPanel hosts usually have **no Redis and no way to run a long-lived
+WebSocket server**. `.env.example` now defaults to shared-hosting-safe values so
+the app boots out of the box: `CACHE_STORE=database`, `QUEUE_CONNECTION=database`,
+`BROADCAST_CONNECTION=log`. (Use the Redis/Reverb values on a VPS instead.)
+
+The `package:discover` crash (`Pusher::__construct() auth_key null`) happens when
+`composer update` runs before a `.env` exists — the config now ships safe
+fallbacks for the Reverb app key/secret/id, so it no longer happens.
+
+Server steps:
+
+```bash
+cd ~/public_html/cartping
+
+# 1. Environment FIRST (before composer, so package:discover can boot)
+cp .env.example .env
+php artisan key:generate
+
+# 2. Dependencies (no lock committed → update, not install)
+composer install --no-dev --optimize-autoloader
+#   or if you need the exact stable tree:
+#   composer update --no-dev
+
+# 3. Database — create a MySQL DB in cPanel, then edit .env:
+#      DB_HOST=localhost   DB_DATABASE=your_db   DB_USERNAME=your_user   DB_PASSWORD=your_pass
+#    and run migrations:
+php artisan migrate --seed
+
+# 4. Storage + caches
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+Frontend assets are served from `public/`, so point your domain document root at
+`/cartping/public` (or keep the Laravel root and rely on the public `.htaccess`).
+Make sure `storage/` and `bootstrap/cache/` are writable.
+
+> **Queues on shared hosting:** with `QUEUE_CONNECTION=database`, queued jobs
+> (webhooks, AI agent, automation sends) are stored in the `jobs` table. Add a
+> cron job that runs every minute:
+> `* * * * * /usr/bin/php /home/USER/public_html/cartping/artisan queue:work --once`
+>
+> **Real-time inbox (Reverb) is NOT available on shared hosting** — no WebSocket
+> daemon. Set `BROADCAST_CONNECTION=log` (default) and use page refresh to view
+> the inbox. Move to a VPS to enable live updates.
+
+---
+
 ## Troubleshooting
 
 - **`laravel/framework` `spatie/once` / "cannot coexist" during `composer update`** —
