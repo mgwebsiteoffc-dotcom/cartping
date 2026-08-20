@@ -10,9 +10,20 @@ return new class extends Migration
     {
         Schema::create('template_approvals', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('store_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('template_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('variant_id')->nullable()->constrained()->nullOnDelete();
+
+            $table->foreignUuid('store_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('template_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('variant_id')
+                ->nullable()
+                ->constrained('template_variants')
+                ->nullOnDelete();
+
             $table->string('level'); // internal | compliance | provider
             $table->string('status')->default('pending');
             $table->string('reviewer_type')->nullable();
