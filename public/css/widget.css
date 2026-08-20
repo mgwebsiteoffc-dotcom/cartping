@@ -1,0 +1,6 @@
+/* CartPing widget — all critical styling is injected by widget.js for
+   isolation from the host theme. This file provides sensible fallback styles
+   and the default launcher look if a theme overrides injected styles. */
+
+#cp-launcher { transition: transform .15s ease; }
+#cp-launcher:hover { transform: scale(1.08); }

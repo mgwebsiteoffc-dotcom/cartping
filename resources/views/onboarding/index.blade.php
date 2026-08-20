@@ -1,0 +1,99 @@
+@extends('layouts.app')
+
+@section('title', 'Onboarding')
+
+@section('content')
+    <h1>Set up {{ $store->name }}</h1>
+
+    <ol class="steps">
+        <li class="{{ $store->onboarding_step >= 1 ? 'done' : '' }}">Shopify</li>
+        <li class="{{ $store->onboarding_step >= 2 ? 'done' : '' }}">WhatsApp</li>
+        <li class="{{ $store->onboarding_step >= 3 ? 'done' : '' }}">AI Agent</li>
+        <li class="{{ $store->onboarding_step >= 4 ? 'done' : '' }}">Widget</li>
+        <li class="{{ $store->onboarding_step >= 5 ? 'done' : '' }}">Template</li>
+        <li class="{{ $store->onboarding_step >= 6 ? 'done' : '' }}">Test</li>
+    </ol>
+
+    @if ($store->onboarding_step <= 2)
+        <section class="card">
+            <h2>1 · Connect Shopify</h2>
+            <p>Use your Custom App access token, or install via the public Shopify app (OAuth).</p>
+            <form method="POST" action="{{ route('onboarding.shopify') }}" class="stack">
+                @csrf
+                <label>Shopify Admin API token<input name="shopify_access_token" placeholder="shpat_..." value="{{ $store->access_token ?? '' }}"></label>
+                <button class="btn primary" type="submit">Save &amp; sync products</button>
+            </form>
+            <a class="btn" href="{{ route('auth.shopify') }}">Or install via Shopify OAuth</a>
+        </section>
+    @endif
+
+    @if ($store->onboarding_step >= 2 && $store->onboarding_step <= 3)
+        <section class="card">
+            <h2>2 · Connect WhatsApp</h2>
+            <form method="POST" action="{{ route('onboarding.whatsapp') }}" class="stack">
+                @csrf
+                <label>Provider
+                    <select name="provider">
+                        <option value="meta">Meta Cloud API</option>
+                        <option value="whatify">Whatify</option>
+                    </select>
+                </label>
+                <label>Token<input name="token" value="{{ $store->whatsappConnection?->token ?? '' }}"></label>
+                <label>Phone number ID<input name="phone_number_id" value="{{ $store->whatsappConnection?->phone_number_id ?? '' }}"></label>
+                <label>WABA ID (Meta)<input name="waba_id" value="{{ $store->whatsappConnection?->waba_id ?? '' }}"></label>
+                <button class="btn primary" type="submit">Connect</button>
+            </form>
+
+            @if ($store->whatsappConnection?->is_connected)
+                <form method="POST" action="{{ route('onboarding.whatsapp.test') }}" class="stack" style="margin-top:1rem">
+                    @csrf
+                    <label>Test number<input name="test_number" placeholder="+15551234567" required></label>
+                    <button class="btn" type="submit">Send test message</button>
+                </form>
+            @endif
+        </section>
+    @endif
+
+    @if ($store->onboarding_step >= 3 && $store->onboarding_step <= 4)
+        <section class="card">
+            <h2>3 · Configure the AI Agent</h2>
+            <form method="POST" action="{{ route('onboarding.agent') }}" class="stack">
+                @csrf
+                <label>Agent name<input name="name" value="{{ $store->agentConfig?->name ?? 'Store Assistant' }}"></label>
+                <label>Persona<textarea name="persona" rows="3">{{ $store->agentConfig?->persona }}</textarea></label>
+                <label>Autonomous mode<input type="checkbox" name="autonomous" value="1" @checked($store->agentConfig?->autonomous ?? true)></label>
+                <button class="btn primary" type="submit">Save agent</button>
+            </form>
+        </section>
+    @endif
+
+    @if ($store->onboarding_step >= 4 && $store->onboarding_step <= 5)
+        <section class="card">
+            <h2>4 · Install the Widget</h2>
+            <form method="POST" action="{{ route('onboarding.widget') }}" class="stack">
+                @csrf
+                <label>Widget type
+                    <select name="type">
+                        <option value="simple_button">Simple button</option>
+                        <option value="tooltip">Tooltip</option>
+                        <option value="chat_widget" selected>Chat widget</option>
+                        <option value="smart_contextual">Smart contextual</option>
+                    </select>
+                </label>
+                <button class="btn primary" type="submit">Install widget</button>
+            </form>
+            <p class="muted">Script: <code>&lt;script src="{{ url('js/widget.js') }}" data-shop="{{ $store->myshopify_domain }}" async&gt;&lt;/script&gt;</code></p>
+        </section>
+    @endif
+
+    @if ($store->onboarding_step >= 5 && $store->onboarding_step < 6)
+        <section class="card">
+            <h2>5 · Create your first template</h2>
+            <form method="POST" action="{{ route('onboarding.template') }}" class="stack">
+                @csrf
+                <label>Describe the message<textarea name="brief" rows="3" placeholder="e.g. send order confirmation with tracking info"></textarea></label>
+                <button class="btn primary" type="submit">Generate with AI</button>
+            </form>
+        </section>
+    @endif
+@endsection
