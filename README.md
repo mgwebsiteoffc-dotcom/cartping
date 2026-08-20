@@ -112,11 +112,19 @@ exist on Windows** — so `composer install` would fail with
 `requires ext-pcntl * -> it is missing from your system`.
 
 This project's `composer.json` already handles that by declaring a
-`config.platform` entry for `ext-pcntl` and `ext-posix`, so Composer installs
-cleanly on Windows. Just remember to run **`composer update`** the first time:
+`config.platform` entry for `ext-pcntl` and `ext-posix`, so Composer resolves
+and installs cleanly on Windows. Just run **`composer update`** the first time
+(no special flags needed):
 
 ```bash
-composer update --ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix
+composer update
+```
+
+If you ever need to regenerate from scratch:
+```bash
+# remove the stale lock if a previous attempt left a broken one
+del composer.lock   # (Windows)  /  rm composer.lock  (macOS/Linux)
+composer update
 ```
 
 > `config.platform` makes the packages install; but because Windows has no real
@@ -206,6 +214,22 @@ Custom app triggers/actions are the webhooks this app registers:
 - `send_template` / `send_media` / `trigger_chatbot_flow` — route the merchant to
   your own Flow connector endpoints; the underlying capability is
   `WhatsappSender::template/media` and `AgentOrchestrator`.
+
+---
+
+## Troubleshooting
+
+- **`laravel/framework` `spatie/once` / "cannot coexist" during `composer update`** —
+  caused by `minimum-stability: dev` and/or an old `laravel/tinker: ^2.0` pin
+  dragging `laravel/framework dev-master`. This repo now uses
+  `minimum-stability: stable` and `laravel/tinker: ^3.0` (matching the official
+  Laravel 13 skeleton), so delete any stale `composer.lock` and run `composer update`.
+- **`Target class [Laravel\Reverb\Console\Commands\StartServer] does not exist`** —
+  only appears when Reverb is not installed yet (Composer failed). Reverb
+  auto-registers its `reverb:start` command, so no manual provider registration
+  is needed; the custom provider was removed. Re-run `composer update` first.
+- **`Target class [App\...] does not exist`** — run
+  `composer dump-autoload` (or `php artisan optimize:clear`).
 
 ---
 
