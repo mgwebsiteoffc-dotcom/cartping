@@ -88,23 +88,6 @@ Requirements: PHP ≥ 8.3, Composer, MySQL 8, Redis, Node 20+.
 composer update
 npm install
 
-# 2. Configure environment
-cp .env.example .env
-php artisan key:generate
-
-# 3. Database
-php artisan migrate --seed
-php artisan storage:link
-
-# 4. Build frontend
-npm run dev            # or: npm run build
-
-# 5. Run the stack (from composer.json "dev" script)
-composer run dev       # serve + queue workers + reverb + vite
-```
-
-Then visit `http://localhost:8000`.
-
 ### Windows / Laragon
 
 Laravel **Horizon requires the `pcntl` and `posix` PHP extensions, which do not
@@ -228,18 +211,34 @@ The `package:discover` crash (`Pusher::__construct() auth_key null`) happens whe
 `composer update` runs before a `.env` exists — the config now ships safe
 fallbacks for the Reverb app key/secret/id, so it no longer happens.
 
+There are also two more shared-host fixes baked into the repo:
+
+1. **`config/app.php` is the modern Laravel 13 layout** (empty `providers` /
+   `aliases` arrays). The old-style full framework-providers list caused
+   duplicate provider registration and broke console-command loading — which
+   produced `There are no commands defined in the "package" namespace` during
+   `composer update`. App providers live in `bootstrap/providers.php`.
+2. **Tolerant package discovery.** The `post-autoload-dump` hook now runs
+   `artisan-discover.php` (a wrapper that catches failures instead of aborting
+   the install). Laravel rebuilds the package manifest lazily on the first
+   `php artisan` run anyway, so a discovery hiccup never blocks Composer.
+
 Server steps:
 
 ```bash
 cd ~/public_html/cartping
 
+# 0. Pull the fixes
+git pull origin arena/01a01e0f-cartping
+
 # 1. Environment FIRST (before composer, so package:discover can boot)
 cp .env.example .env
 php artisan key:generate
 
-# 2. Dependencies (no lock committed → update, not install)
+# 2. Dependencies — if a composer.lock already exists on the server use install;
+#    otherwise update. Either way the tolerant discovery hook prevents failures.
 composer install --no-dev --optimize-autoloader
-#   or if you need the exact stable tree:
+#   or (first time / no lock):
 #   composer update --no-dev
 
 # 3. Database — create a MySQL DB in cPanel, then edit .env:
@@ -253,6 +252,19 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+
+**Committing a `composer.lock` (recommended):** run `composer update` once on
+your local machine (Laragon) so it generates `composer.lock`, then commit it:
+
+```bash
+composer update          # local, generates composer.lock
+git add composer.lock
+git commit -m "Add composer.lock for reproducible installs"
+git push origin arena/01a01e0f-cartping
+```
+
+After that, the server can always use `composer install --no-dev`. (`composer.lock`
+is not in `.gitignore`, so it will be committed.)
 
 Frontend assets are served from `public/`, so point your domain document root at
 `/cartping/public` (or keep the Laravel root and rely on the public `.htaccess`).
@@ -280,6 +292,11 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   only appears when Reverb is not installed yet (Composer failed). Reverb
   auto-registers its `reverb:start` command, so no manual provider registration
   is needed; the custom provider was removed. Re-run `composer update` first.
+- **`There are no commands defined in the "package" namespace`** during
+  `composer update` — caused by the old-style full provider list in
+  `config/app.php` (now the modern empty `providers`/`aliases` layout). Pull the
+  latest code; the `post-autoload-dump` hook is also now non-fatal
+  (`artisan-discover.php`).
 - **`Target class [App\...] does not exist`** — run
   `composer dump-autoload` (or `php artisan optimize:clear`).
 
