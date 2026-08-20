@@ -26,13 +26,42 @@ class ShopifyAuthController extends Controller
             );
         }
 
-        $shop = $request->query('shop');
+        $shop = $this->normalizeShop($request->query('shop', $request->input('shop')));
 
-        if (! $shop || ! preg_match('/^[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com$/', $shop)) {
-            return redirect()->route('auth.manual');
+        if (! $shop) {
+            return redirect()->route('auth.manual')->withErrors('Please provide a valid Shopify store URL.');
         }
 
         return redirect()->away($this->oauth->authorizeUrl($shop));
+    }
+
+    /**
+     * Accept "yourshop", "yourshop.myshopify.com", or a full https:// URL and
+     * normalize to "yourshop.myshopify.com".
+     */
+    protected function normalizeShop(?string $shop): ?string
+    {
+        if (! $shop) {
+            return null;
+        }
+
+        $shop = trim($shop);
+
+        // Strip scheme and path.
+        if (preg_match('#^https?://([^/]+)#i', $shop, $m)) {
+            $shop = $m[1];
+        }
+
+        // Strip port.
+        $shop = preg_replace('#:\d+$#', '', $shop);
+
+        if (! preg_match('/\.myshopify\.com$/i', $shop)) {
+            $shop .= '.myshopify.com';
+        }
+
+        $shop = strtolower($shop);
+
+        return preg_match('/^[a-z0-9][a-z0-9\-]*\.myshopify\.com$/', $shop) ? $shop : null;
     }
 
     public function callback(Request $request)

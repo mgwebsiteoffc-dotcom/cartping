@@ -17,13 +17,29 @@
     @if ($store->onboarding_step <= 2)
         <section class="card">
             <h2>1 · Connect Shopify</h2>
-            <p>Use your Custom App access token, or install via the public Shopify app (OAuth).</p>
+
+            <p><strong>Recommended — connect in real time via Shopify OAuth.</strong><br>
+            Enter your store URL and you'll be redirected to Shopify to approve the app.
+            We exchange the token instantly and bring you right back.</p>
+
+            @if (config('shopify.api_key') && config('shopify.api_secret'))
+                <form method="GET" action="{{ route('auth.shopify') }}" class="stack">
+                    <label>Store URL<input name="shop" placeholder="yourshop.myshopify.com" value="{{ $store->myshopify_domain }}"></label>
+                    <button class="btn primary" type="submit">Connect with Shopify (OAuth)</button>
+                </form>
+            @else
+                <p class="muted">Public app OAuth isn't configured (no SHOPIFY_API_KEY/SECRET). Use a Custom App token below, or add the keys to your <code>.env</code>.</p>
+            @endif
+
+            <hr>
+
+            <p><strong>Alternative — Custom App access token.</strong><br>
+            Create a Custom App in your Shopify admin, generate an Admin API token and paste it here.</p>
             <form method="POST" action="{{ route('onboarding.shopify') }}" class="stack">
                 @csrf
                 <label>Shopify Admin API token<input name="shopify_access_token" placeholder="shpat_..." value="{{ $store->access_token ?? '' }}"></label>
-                <button class="btn primary" type="submit">Save &amp; sync products</button>
+                <button class="btn" type="submit">Save &amp; sync products</button>
             </form>
-            <a class="btn" href="{{ route('auth.shopify') }}">Or install via Shopify OAuth</a>
         </section>
     @endif
 

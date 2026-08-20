@@ -85,13 +85,16 @@ PROMPT;
         );
 
         $extra = $settings['agent_context'] ?? '';
+        $autoMode = ($agent && $agent->autonomous)
+            ? 'resolves most requests autonomously'
+            : 'resolves common requests, escalates complex ones';
 
         return <<<PROMPT
 # 2. STORE CONTEXT
 {$summary}
 {$extra}
 Store contact email: {$store->contact_email}
-Agent auto-mode: {$agent?->autonomous ? 'resolves most requests autonomously' : 'resolves common requests, escalates complex ones'}
+Agent auto-mode: {$autoMode}
 PROMPT;
     }
 
@@ -109,11 +112,14 @@ PROMPT;
             ? "Orders: {$customer->total_orders}, Lifetime value: {$customer->lifetime_value} {$store->currency}"
             : 'No Shopify order history yet.';
 
+        $name = $contact->profile_name ?: 'unknown';
+        $optInSource = $contact->opt_in_source ?? 'n/a';
+
         return <<<PROMPT
 # 3. CUSTOMER CONTEXT
-Name: {$contact->profile_name ?: 'unknown'}
+Name: {$name}
 WA: {$contact->wa_id}
-Consent: {$contact->consent_state} (opted in {$contact->opt_in_source ?? 'n/a'})
+Consent: {$contact->consent_state} (opted in {$optInSource})
 {$orders}
 PROMPT;
     }
