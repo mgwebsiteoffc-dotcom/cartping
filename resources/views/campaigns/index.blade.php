@@ -26,10 +26,20 @@
             <label>Audience
                 <select name="audience_type" id="audience-type">
                     <option value="all">All opted-in contacts</option>
+                    <option value="segment">By segment</option>
                     <option value="tag">By tag</option>
                     <option value="manual">Manual numbers</option>
                 </select>
             </label>
+            <div id="audience-segment" style="display:none">
+                <label>Segment
+                    <select name="audience_segment_id">
+                        @foreach ($segments as $s)
+                            <option value="{{ $s->id }}">{{ $s->name }} ({{ $s->contact_count }})</option>
+                        @endforeach
+                    </select>
+                </label>
+            </div>
             <div id="audience-tag" style="display:none">
                 <label>Tag<input name="audience_tag" placeholder="vip"></label>
             </div>
@@ -50,6 +60,7 @@
             function toggle() {
                 document.getElementById('audience-tag').style.display = sel.value === 'tag' ? 'block' : 'none';
                 document.getElementById('audience-manual').style.display = sel.value === 'manual' ? 'block' : 'none';
+                document.getElementById('audience-segment').style.display = sel.value === 'segment' ? 'block' : 'none';
             }
             sel.addEventListener('change', toggle); toggle();
         })();

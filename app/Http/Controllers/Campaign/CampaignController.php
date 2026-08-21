@@ -23,6 +23,7 @@ class CampaignController extends Controller
             'store' => $store,
             'campaigns' => Campaign::where('store_id', $store->id)->latest()->paginate(20),
             'templates' => Template::where('store_id', $store->id)->get(),
+            'segments' => \App\Models\Segment::where('store_id', $store->id)->get(),
             'contactsCount' => Contact::where('store_id', $store->id)->where('consent_state', 'OPT_IN')->count(),
         ]);
     }
@@ -35,8 +36,9 @@ class CampaignController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'template_id' => ['nullable', 'exists:templates,id'],
             'message_body' => ['nullable', 'string'],
-            'audience_type' => ['required', 'in:all,tag,manual'],
+            'audience_type' => ['required', 'in:all,tag,manual,segment'],
             'audience_tag' => ['nullable', 'string'],
+            'audience_segment_id' => ['nullable', 'exists:segments,id'],
             'audience_numbers' => ['nullable', 'string'],
             'schedule_at' => ['nullable', 'date'],
             'send_limit_per_hour' => ['nullable', 'integer', 'min:1', 'max:10000'],
@@ -44,6 +46,7 @@ class CampaignController extends Controller
 
         $audience = match ($data['audience_type']) {
             'tag' => ['type' => 'tag', 'value' => $data['audience_tag']],
+            'segment' => ['type' => 'segment', 'value' => $data['audience_segment_id']],
             'manual' => ['type' => 'manual', 'value' => array_filter(array_map('trim', explode(',', $data['audience_numbers'] ?? '')))],
             default => ['type' => 'all'],
         };

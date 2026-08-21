@@ -48,7 +48,14 @@ class CampaignService
                 break;
 
             case 'segment':
-                $query->whereJsonContains('tags', $audience['value'] ?? null); // segment ~ tag for now
+                $segment = \App\Models\Segment::find($audience['value'] ?? null);
+                if ($segment) {
+                    $ids = app(\App\Services\Segments\SegmentResolver::class)
+                        ->queryFor($segment)
+                        ->pluck('id');
+
+                    $query->whereIn('id', $ids);
+                }
                 break;
 
             case 'all':

@@ -104,6 +104,13 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::get('/contacts/{contact}', [\App\Http\Controllers\Contact\ContactController::class, 'show'])->name('contacts.show');
         Route::post('/contacts/{contact}/tags', [\App\Http\Controllers\Contact\ContactController::class, 'updateTags'])->name('contacts.tags');
 
+        // Contact segments
+        Route::get('/segments', [\App\Http\Controllers\Segment\SegmentController::class, 'index'])->name('segments.index');
+        Route::post('/segments', [\App\Http\Controllers\Segment\SegmentController::class, 'store'])->name('segments.store');
+        Route::post('/segments/preview', [\App\Http\Controllers\Segment\SegmentController::class, 'preview'])->name('segments.preview');
+        Route::post('/segments/{segment}/refresh', [\App\Http\Controllers\Segment\SegmentController::class, 'refresh'])->name('segments.refresh');
+        Route::post('/segments/{segment}/delete', [\App\Http\Controllers\Segment\SegmentController::class, 'destroy'])->name('segments.delete');
+
         Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
     Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
     Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
