@@ -25,7 +25,19 @@ class OwnerController extends Controller
         $totalContacts = Contact::count();
         $totalMessages = Message::count();
         $totalUsers = User::count();
-        $totalRevenueEstimate = Store::with('plan')->get()->sum(fn ($s) => $s->plan?->price_monthly ?? 0);
+
+        // MRR: sum of monthly price for stores on an active (non-free) plan.
+        $paidStores = Store::with('plan')->whereNotNull('plan_id')->whereNull('disabled_at')->get();
+        $totalRevenueEstimate = $paidStores->sum(fn ($s) => $s->plan?->price_monthly ?? 0);
+        $paidCount = $paidStores->count();
+
+        // MRR grouped by plan.
+        $revenueByPlan = $paidStores
+            ->groupBy(fn ($s) => $s->plan?->code ?? 'none')
+            ->map(fn ($group) => [
+                'count' => $group->count(),
+                'mrr' => $group->sum(fn ($s) => $s->plan?->price_monthly ?? 0),
+            ]);
 
         return view('owner.dashboard', [
             'totalStores' => $totalStores,
@@ -34,6 +46,8 @@ class OwnerController extends Controller
             'totalMessages' => $totalMessages,
             'totalUsers' => $totalUsers,
             'totalRevenueEstimate' => $totalRevenueEstimate,
+            'paidCount' => $paidCount,
+            'revenueByPlan' => $revenueByPlan,
             'recentStores' => Store::with('plan')->latest()->limit(10)->get(),
         ]);
     }

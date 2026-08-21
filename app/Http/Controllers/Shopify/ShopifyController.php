@@ -30,6 +30,12 @@ class ShopifyController extends Controller
             'onboardingStep' => $store->onboarding_step,
             'whatsappConnected' => (bool) $store->whatsappConnection?->is_connected,
             'shopifyConnected' => (bool) $store->shopifyConnection?->access_token,
+            'planName' => $store->plan?->name ?? 'Free',
+            'planCode' => $store->plan?->code ?? 'free',
+            'messagesUsed' => $store->messagesUsedThisMonth(),
+            'messagesLimit' => $store->planMessageLimit(),
+            'messagesRemaining' => $store->messagesRemaining(),
+            'canUseBuilder' => $store->canUseBuilder(),
         ]);
     }
 

@@ -21,6 +21,39 @@
         </section>
     @endif
 
+    {{-- Plan usage + contextual upgrade prompts --}}
+    <section class="card">
+        <div class="row">
+            <h2>Plan: {{ $planName }}</h2>
+            <a class="btn" href="{{ route('marketing.pricing') }}" target="_blank" rel="noopener">See plans &amp; pricing</a>
+        </div>
+        <div class="usage-bar">
+            <div class="usage-fill {{ $messagesRemaining === 0 ? 'usage-empty' : '' }}" style="width: {{ $messagesLimit > 0 ? min(100, round($messagesUsed / $messagesLimit * 100)) : 0 }}%"></div>
+        </div>
+        <p class="muted">
+            {{ $messagesUsed }} / {{ $messagesLimit }} WhatsApp messages used this month
+            @if ($messagesRemaining <= 0)
+                — <strong>limit reached.</strong>
+            @endif
+        </p>
+
+        @if ($messagesRemaining <= 0)
+            <div class="flash error">
+                You've used all {{ $messagesLimit }} free messages this month. <a href="{{ route('marketing.pricing') }}" target="_blank" rel="noopener">Upgrade to Builder</a> for 50,000 messages.
+            </div>
+        @elseif ($messagesRemaining <= 10)
+            <div class="flash warning">
+                Only {{ $messagesRemaining }} messages left on your plan. <a href="{{ route('marketing.pricing') }}" target="_blank" rel="noopener">Upgrade to Builder</a> when you need more.
+            </div>
+        @endif
+
+        @if (! $canUseBuilder)
+            <div class="flash warning">
+                The visual flow builder is a <strong>Builder plan</strong> feature. <a href="{{ route('marketing.pricing') }}" target="_blank" rel="noopener">Upgrade</a> to unlock it.
+            </div>
+        @endif
+    </section>
+
     <div class="cards">
         <div class="stat"><span>Open conversations</span><strong>{{ $conversationsOpen }}</strong></div>
         <div class="stat"><span>Orders today</span><strong>{{ $ordersToday }}</strong></div>

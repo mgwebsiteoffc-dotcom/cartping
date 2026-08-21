@@ -219,4 +219,17 @@ class Store extends Authenticatable
 
         return $this->plan->hasFeature('flows');
     }
+
+    /**
+     * Shopify recurring charge id for this store (if subscribed via Shopify).
+     */
+    public function shopifyChargeId(): ?int
+    {
+        return (int) ($this->settings['shopify_charge_id'] ?? 0) ?: null;
+    }
+
+    public function billingPlanCode(): ?string
+    {
+        return $this->settings['billing_plan'] ?? ($this->plan?->code ?? null);
+    }
 }

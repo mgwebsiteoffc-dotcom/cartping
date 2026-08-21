@@ -5,13 +5,20 @@
 @section('content')
     <h1>Stores</h1>
     <table class="table">
-        <thead><tr><th>Store</th><th>Contacts</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Store</th><th>Contacts</th><th>Plan</th><th>Charge</th><th>Status</th><th>Actions</th></tr>
         <tbody>
         @forelse ($stores as $s)
             <tr>
                 <td>{{ $s->myshopify_domain }}</td>
                 <td>{{ $s->contacts_count }}</td>
                 <td>{{ $s->plan?->name ?? '—' }}</td>
+                <td>
+                    @if ($s->shopifyChargeId())
+                        <span class="badge">charge #{{ $s->shopifyChargeId() }}</span>
+                    @else
+                        <span class="muted">{{ $s->billingPlanCode() === 'free' ? 'Free (no charge)' : '—' }}</span>
+                    @endif
+                </td>
                 <td><span class="badge {{ $s->isDisabled() ? 'error' : '' }}">{{ $s->isDisabled() ? 'Disabled' : 'Active' }}</span></td>
                 <td>
                     <details>

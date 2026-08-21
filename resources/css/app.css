@@ -162,3 +162,8 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .pricing-card .price span { font-size: 14px; color: var(--muted); font-weight: 400; }
 .pricing-card ul { list-style: none; padding: 0; margin: 0; line-height: 1.9; font-size: 14px; }
 .pricing-card .btn { margin-top: auto; text-align: center; }
+
+/* Usage bar */
+.usage-bar { height: 10px; background: var(--panel-2); border-radius: 6px; overflow: hidden; margin: 10px 0 6px; }
+.usage-fill { height: 100%; background: var(--green); border-radius: 6px; transition: width .3s; }
+.usage-fill.usage-empty { background: var(--danger); }
