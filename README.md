@@ -30,7 +30,9 @@ click-to-WhatsApp attribution and analytics.
   validation, returns, FAQ/RAG, escalation, …) driven through **OpenRouter**
   (GPT-4o + free reasoning models), using an **8-layer prompt**.
 - **AI template generation** — multi-level approvals (internal → compliance →
-  provider), compliance checking, and A/B variant creation submitted to the provider.
+  provider), compliance checking, A/B variant creation, **media/text header support**
+  (image/document/video), an in-app **WhatsApp-style preview**, and a **live sync**
+  button that pulls the latest template approval status back from Meta/Whatify.
 - **Visual chat flow builder** — drag-and-drop style automation flows (like
   Aisensy/Wati): message / template / delay / condition / assign-human / end
   nodes, triggered by welcome, new message, or keyword. Runs are tracked and

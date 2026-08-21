@@ -121,6 +121,8 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::get('/templates', [TemplateController::class, 'index'])->name('templates.index');
         Route::post('/templates/store', [TemplateController::class, 'store'])->name('templates.store');
         Route::post('/templates/generate', [TemplateController::class, 'generate'])->name('templates.generate');
+        Route::post('/templates/sync', [TemplateController::class, 'sync'])->name('templates.sync');
+        Route::post('/templates/{template}/header', [TemplateController::class, 'setHeader'])->name('templates.header');
         Route::post('/templates/{template}/ab', [TemplateController::class, 'createAbVariants'])->name('templates.ab');
         Route::post('/templates/{template}/submit', [TemplateController::class, 'submit'])->name('templates.submit');
         Route::post('/templates/{template}/approve', [TemplateController::class, 'approve'])->name('templates.approve');

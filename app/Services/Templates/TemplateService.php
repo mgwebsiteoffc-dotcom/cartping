@@ -124,6 +124,76 @@ class TemplateService
         return $template;
     }
 
+    /**
+     * Live-sync template approval statuses from the provider. Matches by template
+     * name and updates status/lifecycle + provider_template_id.
+     *
+     * @return array{updated: int, remote: int}
+     */
+    public function syncFromProvider(Store $store): array
+    {
+        try {
+            $provider = $this->whatsapp->for($store);
+            $remote = $provider->listTemplates();
+        } catch (\Throwable $e) {
+            return ['updated' => 0, 'remote' => 0, 'error' => $e->getMessage()];
+        }
+
+        $updated = 0;
+        foreach ($remote as $item) {
+            if (empty($item['name'])) {
+                continue;
+            }
+
+            $template = Template::where('store_id', $store->id)
+                ->where('name', $item['name'])
+                ->first();
+
+            if (! $template) {
+                continue;
+            }
+
+            $status = $item['status'] ?? 'draft';
+            $lifecycle = match ($status) {
+                'approved' => 'approved',
+                'rejected' => 'rejected',
+                'pending', 'in_review', 'under_review' => 'in_review',
+                default => 'draft',
+            };
+
+            $template->update([
+                'provider_template_id' => $item['id'] ?: $template->provider_template_id,
+                'status' => $lifecycle === 'approved' ? 'approved' : ($status === 'rejected' ? 'rejected' : 'submitted'),
+                'lifecycle' => $lifecycle,
+            ]);
+
+            $updated++;
+        }
+
+        return ['updated' => $updated, 'remote' => count($remote)];
+    }
+
+    /**
+     * Update the media header (image/document/video) used when submitting the
+     * template to the provider.
+     */
+    public function setHeader(Store $store, Template $template, array $header): Template
+    {
+        abort_unless($template->store_id === $store->id, 403);
+
+        $template->update([
+            'header' => array_merge([
+                'type' => 'text',
+                'text' => null,
+                'media_type' => null,
+                'media_url' => null,
+                'media_filename' => null,
+            ], $header),
+        ]);
+
+        return $template;
+    }
+
     protected function submitToProvider(Store $store, Template $template): Template
     {
         $provider = $this->whatsapp->for($store);
@@ -135,13 +205,24 @@ class TemplateService
         }
 
         try {
+            $components = [['type' => 'BODY', 'text' => $template->body]];
+
+            // Include the media/text header if set.
+            $header = $template->header ?? [];
+            if (($header['media_type'] ?? null) && ($header['media_url'] ?? null)) {
+                $components[] = [
+                    'type' => 'HEADER',
+                    $header['media_type'] => ['link' => $header['media_url']],
+                ];
+            } elseif (($header['type'] ?? '') === 'text' && ($header['text'] ?? '')) {
+                $components[] = ['type' => 'HEADER', 'text' => $header['text']];
+            }
+
             $result = $provider->createTemplate([
                 'name' => $template->name,
                 'language' => $template->language,
                 'category' => $template->category,
-                'components' => [
-                    ['type' => 'BODY', 'text' => $template->body],
-                ],
+                'components' => $components,
             ]);
 
             $template->update([

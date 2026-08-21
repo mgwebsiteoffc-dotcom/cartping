@@ -138,3 +138,10 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .flow-node-actions { display: flex; justify-content: flex-end; }
 .new-flow { position: relative; }
 .new-flow form { position: absolute; right: 0; top: 34px; width: 280px; z-index: 50; }
+
+/* Modal + WhatsApp preview */
+.modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.55); align-items: center; justify-content: center; }
+.modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; max-width: 460px; width: 92%; max-height: 90vh; overflow-y: auto; }
+.wa-preview { background: #ece5dd; border-radius: 12px; padding: 14px; margin: 12px 0; }
+.wa-preview-text { font-size: 15px; color: #111; white-space: pre-wrap; }
+.wa-preview-header { margin-bottom: 8px; }

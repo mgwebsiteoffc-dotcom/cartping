@@ -72,6 +72,13 @@ interface WhatsappProvider
     public function templateStatus(string $providerTemplateId): array;
 
     /**
+     * List the merchant's templates from the provider (for live sync).
+     *
+     * @return array<int, array{id: string, name: string, status: string, category: ?string, language: ?string}>
+     */
+    public function listTemplates(): array;
+
+    /**
      * Fetch the merchant's phone number profile / business display info.
      */
     public function fetchPhoneNumbers(): array;

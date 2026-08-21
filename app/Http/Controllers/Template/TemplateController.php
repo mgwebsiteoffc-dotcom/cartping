@@ -99,4 +99,45 @@ class TemplateController extends Controller
 
         return back()->with('status', "Approval level '{$level}' recorded.");
     }
+
+    /**
+     * Live-sync template statuses from the connected provider.
+     */
+    public function sync()
+    {
+        $store = request()->user('store');
+
+        $result = $this->templates->syncFromProvider($store);
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['sync' => 'Could not sync templates: '.$result['error']]);
+        }
+
+        return back()->with('status', "Synced: {$result['updated']} template(s) updated from {$result['remote']} on the provider.");
+    }
+
+    /**
+     * Set the template's media header (image/document/video) or text header.
+     */
+    public function setHeader(Template $template, Request $request)
+    {
+        $store = request()->user('store');
+
+        $data = $request->validate([
+            'header_type' => ['required', 'in:text,image,document,video'],
+            'header_text' => ['nullable', 'string'],
+            'header_url' => ['nullable', 'url'],
+        ]);
+
+        $header = [
+            'type' => $data['header_type'],
+            'text' => $data['header_type'] === 'text' ? $data['header_text'] : null,
+            'media_type' => in_array($data['header_type'], ['image', 'document', 'video']) ? $data['header_type'] : null,
+            'media_url' => in_array($data['header_type'], ['image', 'document', 'video']) ? $data['header_url'] : null,
+        ];
+
+        $this->templates->setHeader($store, $template, $header);
+
+        return back()->with('status', 'Template header updated.');
+    }
 }

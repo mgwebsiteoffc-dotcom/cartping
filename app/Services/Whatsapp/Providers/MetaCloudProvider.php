@@ -301,6 +301,35 @@ class MetaCloudProvider implements WhatsappProvider
         return $this->requireOk($response, 'templateStatus');
     }
 
+    public function listTemplates(): array
+    {
+        $url = rtrim($this->baseUrl, '/').'/'.$this->graphVersion.'/'.$this->phoneNumberId().'/message_templates';
+
+        $response = Http::withHeaders($this->headers())
+            ->timeout(10)
+            ->get($url);
+
+        if ($response->failed()) {
+            Log::channel('whatsapp')->error('Meta listTemplates failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return [];
+        }
+
+        return collect($response->json('data', []))
+            ->map(fn ($t) => [
+                'id' => (string) ($t['id'] ?? ''),
+                'name' => $t['name'] ?? '',
+                'status' => strtolower($t['status'] ?? ''),
+                'category' => $t['category'] ?? null,
+                'language' => $t['language'] ?? null,
+                'raw' => $t,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function fetchPhoneNumbers(): array
     {
         $wabaId = $this->connection?->waba_id;

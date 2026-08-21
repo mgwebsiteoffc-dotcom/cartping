@@ -3,7 +3,13 @@
 @section('title', 'Templates')
 
 @section('content')
-    <h1>Message Templates</h1>
+    <div class="row">
+        <h1>Message Templates</h1>
+        <form method="POST" action="{{ route('templates.sync') }}">
+            @csrf
+            <button class="btn primary" type="submit">↻ Sync status from provider</button>
+        </form>
+    </div>
 
     <div class="layout">
         <section class="card">
@@ -74,6 +80,8 @@
                             <button class="btn">Add A/B</button>
                         </form>
                     @endif
+                    <button class="btn" data-preview="{{ $template->id }}">Preview</button>
+                    <button class="btn" data-header="{{ $template->id }}">Header</button>
                 </td>
             </tr>
             @if ($template->compliance_issues)
@@ -92,4 +100,84 @@
         @endforelse
         </tbody>
     </table>
+
+    {{-- Preview modal --}}
+    <div id="preview-modal" class="modal">
+        <div class="modal-box">
+            <div class="row"><h3>Preview</h3><button class="btn modal-close">✕</button></div>
+            <div class="wa-preview" id="wa-preview-body">
+                <div id="wa-preview-header" class="wa-preview-header"></div>
+                <div id="wa-preview-text" class="wa-preview-text"></div>
+            </div>
+            <p class="muted">Placeholders {{ '{{1}}' }} {{ '{{2}}' }} shown as-is. Final values are filled at send time.</p>
+        </div>
+    </div>
+
+    {{-- Header modal --}}
+    <div id="header-modal" class="modal">
+        <div class="modal-box">
+            <div class="row"><h3>Template header</h3><button class="btn modal-close">✕</button></div>
+            <form method="POST" id="header-form" class="stack">
+                @csrf
+                <input type="hidden" name="template_id" id="header-template-id">
+                <label>Header type
+                    <select name="header_type" id="header-type">
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                        <option value="document">Document</option>
+                        <option value="video">Video</option>
+                    </select>
+                </label>
+                <label>Header text (for text type)<input name="header_text" id="header-text" placeholder="e.g. Special offer inside!"></label>
+                <label>Media URL (for image/document/video)<input name="header_url" id="header-url" placeholder="https://.../image.jpg"></label>
+                <button class="btn primary" type="submit">Save header</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var templates = @json($templates->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->display_name ?: $t->name,
+                'body' => $t->body,
+                'header' => $t->header,
+            ]));
+
+            function tmpl(id) { return templates.find(function (t) { return t.id === id; }) || {}; }
+            function esc(s) { return (s||'').replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+            var pm = document.getElementById('preview-modal');
+            var hm = document.getElementById('header-modal');
+
+            document.querySelectorAll('[data-preview]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var t = tmpl(Number(b.getAttribute('data-preview')));
+                    var h = t.header || {};
+                    document.getElementById('wa-preview-header').innerHTML = h.media_url
+                        ? '<img src="' + esc(h.media_url) + '" alt="" style="max-width:100%;max-height:140px;border-radius:8px">'
+                        : (h.text ? '<strong>' + esc(h.text) + '</strong>' : '');
+                    document.getElementById('wa-preview-text').textContent = t.body || '';
+                    pm.style.display = 'flex';
+                });
+            });
+
+            document.querySelectorAll('[data-header]').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    var id = b.getAttribute('data-header');
+                    document.getElementById('header-template-id').value = id;
+                    document.getElementById('header-form').setAttribute('action',
+                        '{{ route('templates.header', '__ID__') }}'.replace('__ID__', id));
+                    hm.style.display = 'flex';
+                });
+            });
+
+            document.querySelectorAll('.modal-close').forEach(function (c) {
+                c.addEventListener('click', function () { pm.style.display = 'none'; hm.style.display = 'none'; });
+            });
+            window.addEventListener('click', function (e) {
+                if (e.target === pm || e.target === hm) { pm.style.display = 'none'; hm.style.display = 'none'; }
+            });
+        })();
+    </script>
 @endsection

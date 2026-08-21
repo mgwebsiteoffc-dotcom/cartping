@@ -235,9 +235,25 @@ class WhatifyProvider implements WhatsappProvider
 
     public function listTemplates(): array
     {
-        $response = $this->request('GET', '/templates');
+        try {
+            $response = $this->request('GET', '/templates');
+            $json = $this->requireOk($response, 'listTemplates');
 
-        return $this->requireOk($response, 'listTemplates')['templates'] ?? [];
+            return collect($json['templates'] ?? [])
+                ->map(fn ($t) => [
+                    'id' => (string) ($t['id'] ?? ''),
+                    'name' => $t['name'] ?? '',
+                    'status' => strtolower($t['status'] ?? ''),
+                    'category' => isset($t['category']) ? strtoupper($t['category']) : null,
+                    'language' => $t['language'] ?? null,
+                    'raw' => $t,
+                ])
+                ->values()
+                ->all();
+        } catch (\Throwable $e) {
+            Log::channel('whatsapp')->warning('Whatify listTemplates failed', ['error' => $e->getMessage()]);
+            return [];
+        }
     }
 
     public function templateStatus(string $providerTemplateId): array
