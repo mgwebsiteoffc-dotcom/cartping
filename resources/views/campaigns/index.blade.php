@@ -3,10 +3,13 @@
 @section('title', 'Broadcast campaigns')
 
 @section('content')
-    <h1>Broadcast campaigns</h1>
+    <div class="row">
+        <h1>Broadcast campaigns</h1>
+        <a class="btn" href="{{ route('campaigns.calendar') }}">📅 Schedule calendar</a>
+    </div>
     <p class="muted">{{ $contactsCount }} opted-in contact(s) eligible for marketing broadcasts.</p>
 
-    <section class="card">
+    <section class="card" id="new">
         <h2>New campaign</h2>
         <form method="POST" action="{{ route('campaigns.store') }}" class="stack">
             @csrf

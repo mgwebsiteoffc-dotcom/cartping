@@ -48,8 +48,9 @@ click-to-WhatsApp attribution and analytics.
 - **Real-time inbox** (Laravel Reverb) — human agents take over from AI, view full
   Shopify customer data (orders, LTV, cart), assign, label, get AI-suggested replies.
 - **Broadcast campaigns** — send an approved template (or free text) to an audience
-  (all opted-in / by tag / manual numbers), schedule now or later, with an hourly
-  send limit and per-recipient delivery stats. Dispatched every minute by the scheduler.
+  (all opted-in / by tag / by segment / manual numbers), schedule now or later, with an
+  hourly send limit, per-recipient delivery stats, and a **calendar view** of scheduled
+  broadcasts. Dispatched every minute by the scheduler.
 - **Contacts & segments** — searchable contact list with consent state, tags,
   Shopify customer link, and a **segment builder** with multi-condition groups
   (AND within a group, OR between groups) over fields like tags, consent, name,

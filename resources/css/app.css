@@ -175,3 +175,17 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .health-item.missing { border-left: 4px solid var(--danger); }
 .health-icon { font-size: 18px; }
 .health-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+/* Broadcast calendar */
+.cal-wrap { overflow-x: auto; }
+.cal-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cal-grid th { color: var(--muted); font-weight: 600; padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+.cal-grid td { border: 1px solid var(--border); vertical-align: top; padding: 6px; min-height: 90px; height: 96px; background: var(--panel); }
+.cal-grid td.muted-day { background: var(--panel-2); opacity: .6; }
+.cal-grid td.today { outline: 2px solid var(--green); outline-offset: -2px; }
+.cal-day-num { font-weight: 700; margin-bottom: 4px; }
+.cal-events { display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.cal-event { display: block; background: var(--panel-2); border-left: 3px solid var(--green); border-radius: 4px; padding: 2px 6px; font-size: 12px; color: var(--text); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-event:hover { border-left-color: var(--primary); }
+.cal-event-time { color: var(--muted); margin-right: 4px; }
+.month-label { font-size: 18px; font-weight: 700; min-width: 120px; text-align: center; }

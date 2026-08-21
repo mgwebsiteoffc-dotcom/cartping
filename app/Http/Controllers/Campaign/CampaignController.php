@@ -83,6 +83,59 @@ class CampaignController extends Controller
         ]);
     }
 
+    /**
+     * Calendar view of scheduled campaigns for a month (defaults to current).
+     */
+    public function calendar(Request $request)
+    {
+        $store = request()->user('store');
+
+        // Month navigation: ?month=YYYY-MM
+        $month = $request->input('month', now()->format('Y-m'));
+        $start = \Illuminate\Support\Carbon::parse($month.'-01')->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        // Campaigns with a schedule in this month (or already running/scheduled).
+        $campaigns = Campaign::where('store_id', $store->id)
+            ->whereNotNull('schedule_at')
+            ->whereBetween('schedule_at', [$start, $end])
+            ->orderBy('schedule_at')
+            ->get();
+
+        // Index by day-of-month for the grid.
+        $byDay = $campaigns->groupBy(fn ($c) => $c->schedule_at->day);
+
+        // Build the calendar weeks (weeks starting Monday).
+        $weeks = [];
+        $cursor = (clone $start)->startOfWeek(\Carbon\CarbonInterface::MONDAY);
+        $today = now()->toDateString();
+
+        while ($cursor <= $end) {
+            $week = [];
+            for ($d = 0; $d < 7; $d++) {
+                $date = (clone $cursor)->addDays($d);
+                $week[] = [
+                    'date' => $date->toDateString(),
+                    'day' => $date->day,
+                    'inMonth' => $date->month === (int) $start->format('m'),
+                    'isToday' => $date->toDateString() === $today,
+                    'campaigns' => $byDay->get($date->day, collect()),
+                ];
+            }
+            $weeks[] = $week;
+            $cursor->addWeek();
+        }
+
+        return view('campaigns.calendar', [
+            'store' => $store,
+            'weeks' => $weeks,
+            'monthLabel' => $start->format('F Y'),
+            'prevMonth' => (clone $start)->subMonth()->format('Y-m'),
+            'nextMonth' => (clone $start)->addMonth()->format('Y-m'),
+            'currentMonth' => $month,
+        ]);
+    }
+
     public function destroy(Campaign $campaign)
     {
         $this->authorizeOwner($campaign);

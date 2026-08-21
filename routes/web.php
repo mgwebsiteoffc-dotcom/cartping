@@ -132,6 +132,7 @@ Route::middleware(['shopify.session', 'auth.store', 'store.enabled'])->group(fun
 
         // Broadcast campaigns
         Route::get('/campaigns', [\App\Http\Controllers\Campaign\CampaignController::class, 'index'])->name('campaigns.index');
+        Route::get('/campaigns/calendar', [\App\Http\Controllers\Campaign\CampaignController::class, 'calendar'])->name('campaigns.calendar');
         Route::post('/campaigns', [\App\Http\Controllers\Campaign\CampaignController::class, 'store'])->name('campaigns.store');
         Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Campaign\CampaignController::class, 'show'])->name('campaigns.show');
         Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Campaign\CampaignController::class, 'destroy'])->name('campaigns.cancel');
