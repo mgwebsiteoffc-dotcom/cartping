@@ -31,15 +31,17 @@
                 <p class="muted">Public app OAuth isn't configured (no SHOPIFY_API_KEY/SECRET). Use a Custom App token below, or add the keys to your <code>.env</code>.</p>
             @endif
 
-            <hr>
-
-            <p><strong>Alternative — Custom App access token.</strong><br>
-            Create a Custom App in your Shopify admin, generate an Admin API token and paste it here.</p>
-            <form method="POST" action="{{ route('onboarding.shopify') }}" class="stack">
-                @csrf
-                <label>Shopify Admin API token<input name="shopify_access_token" placeholder="shpat_..." value="{{ $store->access_token ?? '' }}"></label>
-                <button class="btn" type="submit">Save &amp; sync products</button>
-            </form>
+            <details style="margin-top:1rem">
+                <summary class="btn">Advanced: use a Custom App token instead</summary>
+                <div class="card" style="margin-top:.5rem">
+                    <p class="muted">Create a Custom App in your Shopify admin, generate an Admin API token and paste it here. The token already carries the permissions you grant; no scopes needed.</p>
+                    <form method="POST" action="{{ route('onboarding.shopify') }}" class="stack">
+                        @csrf
+                        <label>Shopify Admin API token<input name="shopify_access_token" placeholder="shpat_..." value="{{ $store->access_token ?? '' }}"></label>
+                        <button class="btn" type="submit">Save &amp; sync products</button>
+                    </form>
+                </div>
+            </details>
         </section>
     @endif
 

@@ -14,7 +14,10 @@
     </div>
 
     <div class="inbox-layout">
-        <div class="thread" id="thread" data-conversation="{{ $conversation->id }}">
+        <div class="thread" id="thread"
+             data-conversation="{{ $conversation->id }}"
+             data-messages-url="{{ route('api.conversations.messages', $conversation) }}"
+             data-last-message-id="{{ $conversation->messages->last()?->id }}">
             @foreach ($conversation->messages as $message)
                 <div class="msg {{ $message->direction }}">
                     <div class="bubble">{{ $message->body }}</div>

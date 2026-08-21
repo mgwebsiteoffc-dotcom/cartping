@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ShopifyAuthController;
+use App\Http\Controllers\Platform\OwnerController;
+use App\Http\Controllers\Platform\PlatformAuthController;
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\Ctwa\CtwaController;
@@ -18,6 +20,28 @@ use Illuminate\Support\Facades\Route;
 | Public / marketing
 |--------------------------------------------------------------------------
 */
+/*
+|--------------------------------------------------------------------------
+| SaaS owner panel (platform staff only)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('owner')->name('owner.')->group(function () {
+    Route::get('login', [PlatformAuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [PlatformAuthController::class, 'login']);
+    Route::post('logout', [PlatformAuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('owner')->group(function () {
+        Route::get('/', [OwnerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/stores', [OwnerController::class, 'stores'])->name('stores');
+        Route::post('/stores/{store}', [OwnerController::class, 'updateStore'])->name('stores.update');
+        Route::get('/plans', [OwnerController::class, 'plans'])->name('plans');
+        Route::post('/plans', [OwnerController::class, 'storePlan'])->name('plans.store');
+        Route::post('/plans/{plan}', [OwnerController::class, 'updatePlan'])->name('plans.update');
+        Route::get('/users', [OwnerController::class, 'users'])->name('users');
+        Route::post('/users', [OwnerController::class, 'storeUser'])->name('users.store');
+    });
+});
+
 Route::get('/', function () {
     // Embedded admin loads (with a session token) must land in the app, not the
     // marketing page. Auth is handled by the shopify.session middleware below.

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->seedPlans();
         $this->seedUsers();
 
         // Demo tenant with sensible defaults so a fresh install is explorable.
@@ -50,6 +51,37 @@ class DatabaseSeeder extends Seeder
         $this->seedAutomations($store);
         $this->seedTemplates($store);
         $this->seedKnowledgeBase($store);
+    }
+
+    protected function seedPlans(): void
+    {
+        $plans = [
+            [
+                'name' => 'Free', 'code' => 'free',
+                'price_monthly' => 0, 'price_yearly' => 0,
+                'limits' => ['contacts' => 100, 'broadcasts' => 100],
+                'features' => ['flows' => true, 'campaigns' => false, 'ai_agent' => true],
+            ],
+            [
+                'name' => 'Starter', 'code' => 'starter',
+                'price_monthly' => 29, 'price_yearly' => 290,
+                'limits' => ['contacts' => 1000, 'broadcasts' => 5000],
+                'features' => ['flows' => true, 'campaigns' => true, 'ai_agent' => true],
+            ],
+            [
+                'name' => 'Pro', 'code' => 'pro',
+                'price_monthly' => 79, 'price_yearly' => 790,
+                'limits' => ['contacts' => 10000, 'broadcasts' => 50000],
+                'features' => ['flows' => true, 'campaigns' => true, 'ai_agent' => true, 'ctwa' => true],
+            ],
+        ];
+
+        foreach ($plans as $p) {
+            \App\Models\Plan::firstOrCreate(
+                ['code' => $p['code']],
+                $p
+            );
+        }
     }
 
     /**

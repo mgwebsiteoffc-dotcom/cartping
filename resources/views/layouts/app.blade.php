@@ -39,6 +39,7 @@
             <a href="{{ route('settings.shopify') }}" class="{{ request()->routeIs('settings.shopify') ? 'active' : '' }}">Shopify</a>
             <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp') ? 'active' : '' }}">WhatsApp</a>
         </nav>
+        <a href="{{ route('owner.login') }}" class="sidebar-owner" title="SaaS owner panel">🛠️ Owner panel</a>
         <form method="POST" action="{{ route('auth.logout') }}">
             @csrf
             <button class="logout">Sign out</button>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -45,6 +46,9 @@ class Store extends Authenticatable
         'shopify_scope',
         'access_token',
         'settings',
+        'plan_id',
+        'plan_expires_at',
+        'disabled_at',
     ];
 
     protected $hidden = ['access_token', 'password'];
@@ -57,10 +61,17 @@ class Store extends Authenticatable
             'settings' => 'array',
             'access_token' => 'encrypted',
             'password' => 'hashed',
+            'plan_expires_at' => 'datetime',
+            'disabled_at' => 'datetime',
         ];
     }
 
     /* ------------------------------ Relations ----------------------------- */
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
 
     public function shopifyConnection(): HasOne
     {
@@ -137,5 +148,28 @@ class Store extends Authenticatable
     public function isProvisioned(): bool
     {
         return $this->whatsappConnection()->exists() && $this->agentConfig()->exists();
+    }
+
+    public function hasActivePlan(): bool
+    {
+        if ($this->plan_expires_at && $this->plan_expires_at->isPast()) {
+            return false;
+        }
+
+        return $this->plan !== null;
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->disabled_at !== null;
+    }
+
+    public function activePlanFeature(string $feature): bool
+    {
+        if (! $this->hasActivePlan()) {
+            return false;
+        }
+
+        return $this->plan->hasFeature($feature);
     }
 }

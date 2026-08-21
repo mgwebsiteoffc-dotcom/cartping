@@ -61,6 +61,9 @@ click-to-WhatsApp attribution and analytics.
   (`high / default / low / webhooks`), idempotent webhook processing.
 - **GDPR** — opt-in tracking + consent state on contacts, `cartping:prune` retention.
 - **Onboarding wizard** — Shopify → WhatsApp → Agent → Widget → Template → Test.
+- **SaaS owner panel** — a platform-level dashboard at `/owner` for superadmin/admin
+  staff to manage every store (assign plans, enable/disable), create subscription
+  plans, and manage platform/store users. Separately authenticated from merchant login.
 
 ---
 

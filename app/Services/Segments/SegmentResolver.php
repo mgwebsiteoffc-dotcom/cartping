@@ -94,6 +94,11 @@ class SegmentResolver
                 $q->where('last_seen_at', $this->applyNumberOp($op, $value, 'days'));
                 break;
 
+            case 'total_orders':
+            case 'lifetime_value':
+                $this->applyCustomerNumeric($q, $field === 'total_orders' ? 'total_orders' : 'lifetime_value', $op, $value);
+                break;
+
             default:
                 // metadata / custom attribute via JSON.
                 $this->applyJson($q, 'metadata', $field, $op, $value);
@@ -179,5 +184,33 @@ class SegmentResolver
             'equals' => now()->subDays($days),
             default => now()->subDays($days),
         };
+    }
+
+    /**
+     * Apply a numeric condition against the linked Shopify customer
+     * (total_orders / lifetime_value) via a relation join.
+     */
+    protected function applyCustomerNumeric($q, string $column, string $op, $value): void
+    {
+        $q->whereHas('shopifyCustomer', function ($c) use ($column, $op, $value) {
+            switch ($op) {
+                case 'gt':
+                    $c->where($column, '>', $value);
+                    break;
+                case 'lt':
+                    $c->where($column, '<', $value);
+                    break;
+                case 'not_equals':
+                    $c->where($column, '!=', $value);
+                    break;
+                case 'exists':
+                    $c->whereNotNull($column);
+                    break;
+                case 'equals':
+                default:
+                    $c->where($column, '=', $value);
+                    break;
+            }
+        });
     }
 }

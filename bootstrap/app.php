@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'whatsapp.webhook' => \App\Http\Middleware\VerifyWhatsappWebhook::class,
             'provisioned'   => \App\Http\Middleware\RequireProvisioned::class,
             'role:owner'    => \App\Http\Middleware\EnsureOwnerRole::class,
+            'owner'         => \App\Http\Middleware\EnsurePlatformOwner::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
