@@ -38,6 +38,7 @@ Route::prefix('owner')->name('owner.')->group(function () {
         Route::get('/stores', [OwnerController::class, 'stores'])->name('stores');
         Route::post('/stores/{store}', [OwnerController::class, 'updateStore'])->name('stores.update');
         Route::post('/stores/{store}/toggle', [OwnerController::class, 'toggleStore'])->name('stores.toggle');
+        Route::post('/stores/{store}/verify-charge', [OwnerController::class, 'verifyCharge'])->name('stores.verify-charge');
         Route::get('/plans', [OwnerController::class, 'plans'])->name('plans');
         Route::post('/plans', [OwnerController::class, 'storePlan'])->name('plans.store');
         Route::post('/plans/{plan}', [OwnerController::class, 'updatePlan'])->name('plans.update');
@@ -148,6 +149,8 @@ Route::middleware(['shopify.session', 'auth.store', 'store.enabled'])->group(fun
         Route::post('/segments/{segment}/delete', [\App\Http\Controllers\Segment\SegmentController::class, 'destroy'])->name('segments.delete');
 
         Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
+        // Setup health / checklist (works before provisioning).
+        Route::get('/health', [\App\Http\Controllers\Setup\HealthController::class, 'index'])->name('health.index');
     Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
     Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
 

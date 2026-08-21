@@ -167,3 +167,11 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .usage-bar { height: 10px; background: var(--panel-2); border-radius: 6px; overflow: hidden; margin: 10px 0 6px; }
 .usage-fill { height: 100%; background: var(--green); border-radius: 6px; transition: width .3s; }
 .usage-fill.usage-empty { background: var(--danger); }
+
+/* Health checklist */
+.health-list { display: flex; flex-direction: column; gap: 8px; }
+.health-item { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.health-item.ok { border-left: 4px solid var(--green); }
+.health-item.missing { border-left: 4px solid var(--danger); }
+.health-icon { font-size: 18px; }
+.health-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }

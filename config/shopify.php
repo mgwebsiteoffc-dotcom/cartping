@@ -8,7 +8,7 @@ return [
     */
     'api_key' => env('SHOPIFY_API_KEY', ''),
     'api_secret' => env('SHOPIFY_API_SECRET', ''),
-    'scopes' => explode(',', env('SHOPIFY_API_SCOPES', 'read_products,write_products,read_orders,write_orders,read_customers,read_script_tags,write_script_tags,read_checkouts,write_checkouts')),
+    'scopes' => explode(',', env('SHOPIFY_API_SCOPES', 'read_products,write_products,read_orders,write_orders,read_customers,read_script_tags,write_script_tags,read_checkouts,write_checkouts,read_recurring_application_charges,write_recurring_application_charges')),
     'hmac_secret' => env('SHOPIFY_APP_HMAC_SECRET', ''),
     'embedded' => env('SHOPIFY_EMBEDDED', true),
     // OAuth callback — must be whitelisted under the app's "Allowed redirection URL(s)".

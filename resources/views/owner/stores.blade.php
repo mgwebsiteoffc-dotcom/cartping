@@ -26,6 +26,12 @@
                             @csrf
                             <button class="btn {{ $s->isDisabled() ? 'primary' : '' }}">{{ $s->isDisabled() ? 'Enable' : 'Disable' }}</button>
                         </form>
+                        @if ($s->shopifyChargeId())
+                            <form method="POST" action="{{ route('owner.stores.verify-charge', $s) }}">
+                                @csrf
+                                <button class="btn" title="Verify real charge status from Shopify">Verify charge</button>
+                            </form>
+                        @endif
                         <details>
                             <summary class="btn">Manage</summary>
                             <form method="POST" action="{{ route('owner.stores.update', $s) }}" class="stack card" style="margin-top:.4rem;min-width:260px">

@@ -61,6 +61,10 @@ click-to-WhatsApp attribution and analytics.
   (`high / default / low / webhooks`), idempotent webhook processing.
 - **GDPR** — opt-in tracking + consent state on contacts, `cartping:prune` retention.
 - **Onboarding wizard** — Shopify → WhatsApp → Agent → Widget → Template → Test.
+- **Setup health checklist** — a `Health` page that shows what's configured vs.
+  missing (Shopify, WhatsApp provider + connection, AI agent, approved template,
+  products, plan/usage, queue cron, broadcast mode, onboarding), each with a
+  one-click fix link. Essential on shared hosting.
 - **Billing via Shopify Billing API** — plans/pricing live on the marketing site
   (`/pricing`), NOT in the app. Free plan = 100 messages/month + no flow builder;
   Builder plan (₹999/mo) unlocks the flow builder, campaigns and higher limits.

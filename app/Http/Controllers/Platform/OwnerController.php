@@ -91,6 +91,38 @@ class OwnerController extends Controller
         return back()->with('status', "Store '{$store->myshopify_domain}' is now {$state}.");
     }
 
+    /**
+     * Verify the real Shopify charge status for a store (accurate, not estimated).
+     */
+    public function verifyCharge(Store $store)
+    {
+        $chargeId = $store->shopifyChargeId();
+
+        if (! $chargeId) {
+            return back()->withErrors(['charge' => "Store '{$store->myshopify_domain}' has no Shopify charge id."]);
+        }
+
+        try {
+            $client = \App\Services\Shopify\ShopifyClient::for($store);
+            $charge = $client->getRecurringCharge($chargeId);
+            $status = $charge['status'] ?? 'unknown';
+
+            // Auto-disable if the charge is no longer active.
+            if ($status !== 'active' && ! $store->isDisabled()) {
+                $store->update(['disabled_at' => now()]);
+                return back()->with('status', "Charge for '{$store->myshopify_domain}' is '{$status}' — store disabled.");
+            }
+
+            if ($status === 'active' && $store->isDisabled()) {
+                $store->update(['disabled_at' => null]);
+            }
+
+            return back()->with('status', "Charge for '{$store->myshopify_domain}' is '{$status}'.");
+        } catch (\Throwable $e) {
+            return back()->withErrors(['charge' => 'Could not verify charge: '.$e->getMessage()]);
+        }
+    }
+
     /* ------------------------------ Plans -------------------------------- */
 
     public function plans()

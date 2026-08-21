@@ -38,6 +38,7 @@
             <a href="{{ route('segments.index') }}" class="{{ request()->routeIs('segments*') ? 'active' : '' }}">Segments</a>
             <a href="{{ route('settings.shopify') }}" class="{{ request()->routeIs('settings.shopify') ? 'active' : '' }}">Shopify</a>
             <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp') ? 'active' : '' }}">WhatsApp</a>
+            <a href="{{ route('health.index') }}" class="{{ request()->routeIs('health*') ? 'active' : '' }}">Health</a>
         </nav>
         <a href="{{ route('owner.login') }}" class="sidebar-owner" title="SaaS owner panel">🛠️ Owner panel</a>
         <form method="POST" action="{{ route('auth.logout') }}">
