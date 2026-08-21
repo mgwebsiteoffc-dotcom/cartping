@@ -52,6 +52,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // entry/exit popups, and enrichment) each minute.
         $schedule->command('cartping:automations --run')->everyMinute()->withoutOverlapping();
 
+        // Dispatch due scheduled campaigns + resume pending flow runs.
+        $schedule->command('cartping:campaigns --dispatch')->everyMinute()->withoutOverlapping();
+
         // Aggregate raw events into rollups for dashboards.
         $schedule->command('cartping:metrics:rollup --period=hourly')->hourly();
 

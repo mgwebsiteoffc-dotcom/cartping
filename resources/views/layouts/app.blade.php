@@ -33,6 +33,8 @@
             <a href="{{ route('widget.index') }}" class="{{ request()->routeIs('widget*') ? 'active' : '' }}">Widget</a>
             <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products*') ? 'active' : '' }}">Products</a>
             <a href="{{ route('flows.index') }}" class="{{ request()->routeIs('flows*') ? 'active' : '' }}">Flows</a>
+            <a href="{{ route('campaigns.index') }}" class="{{ request()->routeIs('campaigns*') ? 'active' : '' }}">Campaigns</a>
+            <a href="{{ route('contacts.index') }}" class="{{ request()->routeIs('contacts*') ? 'active' : '' }}">Contacts</a>
             <a href="{{ route('settings.shopify') }}" class="{{ request()->routeIs('settings.shopify') ? 'active' : '' }}">Shopify</a>
             <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp') ? 'active' : '' }}">WhatsApp</a>
         </nav>

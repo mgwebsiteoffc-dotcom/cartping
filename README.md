@@ -45,6 +45,11 @@ click-to-WhatsApp attribution and analytics.
   capture form). Installed via ScriptTag or manual snippet.
 - **Real-time inbox** (Laravel Reverb) — human agents take over from AI, view full
   Shopify customer data (orders, LTV, cart), assign, label, get AI-suggested replies.
+- **Broadcast campaigns** — send an approved template (or free text) to an audience
+  (all opted-in / by tag / manual numbers), schedule now or later, with an hourly
+  send limit and per-recipient delivery stats. Dispatched every minute by the scheduler.
+- **Contacts & segments** — searchable contact list with consent state, tags,
+  Shopify customer link, tag management, and tag-based filtering for targeting.
 - **Analytics** — message performance, automation conversion, template A/B,
   CTWA ROAS, widget CTR, AI resolution rates, escalation reasons, revenue attribution.
 - **Queued event-driven architecture** — Horizon with tiered queues

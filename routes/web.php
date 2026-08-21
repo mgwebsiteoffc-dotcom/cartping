@@ -93,6 +93,17 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::post('/flows/{flow}/test-run', [\App\Http\Controllers\Flow\FlowController::class, 'testRun'])->name('flows.test-run');
         Route::get('/flows/{flow}/runs', [\App\Http\Controllers\Flow\FlowController::class, 'runs'])->name('flows.runs');
 
+        // Broadcast campaigns
+        Route::get('/campaigns', [\App\Http\Controllers\Campaign\CampaignController::class, 'index'])->name('campaigns.index');
+        Route::post('/campaigns', [\App\Http\Controllers\Campaign\CampaignController::class, 'store'])->name('campaigns.store');
+        Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Campaign\CampaignController::class, 'show'])->name('campaigns.show');
+        Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Campaign\CampaignController::class, 'destroy'])->name('campaigns.cancel');
+
+        // Contacts & segments
+        Route::get('/contacts', [\App\Http\Controllers\Contact\ContactController::class, 'index'])->name('contacts.index');
+        Route::get('/contacts/{contact}', [\App\Http\Controllers\Contact\ContactController::class, 'show'])->name('contacts.show');
+        Route::post('/contacts/{contact}/tags', [\App\Http\Controllers\Contact\ContactController::class, 'updateTags'])->name('contacts.tags');
+
         Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
     Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
     Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');
