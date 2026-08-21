@@ -32,6 +32,12 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Assign the Free plan by default (billing handled via Shopify).
+        $free = \App\Models\Plan::where('code', 'free')->first();
+        if ($free && ! $store->plan_id) {
+            $store->update(['plan_id' => $free->id, 'disabled_at' => null]);
+        }
+
         $this->seedStaffFor($store);
 
         AgentConfig::firstOrCreate(['store_id' => $store->id], [
@@ -59,19 +65,14 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Free', 'code' => 'free',
                 'price_monthly' => 0, 'price_yearly' => 0,
-                'limits' => ['contacts' => 100, 'broadcasts' => 100],
-                'features' => ['flows' => true, 'campaigns' => false, 'ai_agent' => true],
+                // Free = 100 messages, no flow builder.
+                'limits' => ['messages' => 100, 'contacts' => 100, 'broadcasts' => 100],
+                'features' => ['flows' => false, 'campaigns' => false, 'ai_agent' => true],
             ],
             [
-                'name' => 'Starter', 'code' => 'starter',
-                'price_monthly' => 29, 'price_yearly' => 290,
-                'limits' => ['contacts' => 1000, 'broadcasts' => 5000],
-                'features' => ['flows' => true, 'campaigns' => true, 'ai_agent' => true],
-            ],
-            [
-                'name' => 'Pro', 'code' => 'pro',
-                'price_monthly' => 79, 'price_yearly' => 790,
-                'limits' => ['contacts' => 10000, 'broadcasts' => 50000],
+                'name' => 'Builder', 'code' => 'builder',
+                'price_monthly' => 999, 'price_yearly' => 9990,
+                'limits' => ['messages' => 50000, 'contacts' => 10000, 'broadcasts' => 50000],
                 'features' => ['flows' => true, 'campaigns' => true, 'ai_agent' => true, 'ctwa' => true],
             ],
         ];

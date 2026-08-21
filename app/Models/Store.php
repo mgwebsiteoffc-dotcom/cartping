@@ -172,4 +172,51 @@ class Store extends Authenticatable
 
         return $this->plan->hasFeature($feature);
     }
+
+    /* --------------------------- Plan limits ----------------------------- */
+
+    /**
+     * Max outbound messages per billing period (free default = 100).
+     */
+    public function planMessageLimit(): int
+    {
+        if ($this->hasActivePlan() && ($limit = $this->plan->limit('messages'))) {
+            return (int) $limit;
+        }
+
+        return 100;
+    }
+
+    /**
+     * Outbound messages sent this calendar month.
+     */
+    public function messagesUsedThisMonth(): int
+    {
+        return Message::where('store_id', $this->id)
+            ->where('direction', 'outbound')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+    }
+
+    public function messagesRemaining(): int
+    {
+        return max(0, $this->planMessageLimit() - $this->messagesUsedThisMonth());
+    }
+
+    public function canSendMessage(): bool
+    {
+        return $this->messagesRemaining() > 0;
+    }
+
+    /**
+     * Whether the flow builder is allowed (paid "Builder" plan feature).
+     */
+    public function canUseBuilder(): bool
+    {
+        if (! $this->hasActivePlan()) {
+            return false;
+        }
+
+        return $this->plan->hasFeature('flows');
+    }
 }

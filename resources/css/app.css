@@ -153,3 +153,12 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 .segment-condition { display: flex; gap: 8px; align-items: center; }
 .segment-condition select, .segment-condition input { flex: 1; }
 .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+/* Pricing */
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 1rem; }
+.pricing-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.pricing-card.featured { border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+.pricing-card .price { font-size: 28px; font-weight: 800; }
+.pricing-card .price span { font-size: 14px; color: var(--muted); font-weight: 400; }
+.pricing-card ul { list-style: none; padding: 0; margin: 0; line-height: 1.9; font-size: 14px; }
+.pricing-card .btn { margin-top: auto; text-align: center; }

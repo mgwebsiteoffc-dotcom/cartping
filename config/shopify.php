@@ -16,4 +16,7 @@ return [
     'redirect_uri' => env('SHOPIFY_REDIRECT_URI', null),
     'api_version' => '2026-07',
     'base_url' => env('SHOPIFY_BASE_URL', 'https://{shop}/admin'),
+    // Billing is handled by the Shopify Billing API.
+    // In production set SHOPIFY_BILLING_TEST=false so real charges are created.
+    'billing_test' => env('SHOPIFY_BILLING_TEST', true),
 ];

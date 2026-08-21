@@ -28,6 +28,12 @@ class FlowController extends Controller
     {
         $store = request()->user('store');
 
+        // The flow builder is a paid ("Builder" plan) feature.
+        if (! $store->canUseBuilder()) {
+            return redirect()->route('marketing.pricing')
+                ->with('status', 'The visual flow builder is included in the Builder plan.');
+        }
+
         return view('flows.builder', [
             'store' => $store,
             'flow' => $flow,
@@ -38,6 +44,11 @@ class FlowController extends Controller
     public function create(Request $request)
     {
         $store = request()->user('store');
+
+        if (! $store->canUseBuilder()) {
+            return redirect()->route('marketing.pricing')
+                ->with('status', 'The visual flow builder is included in the Builder plan.');
+        }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],

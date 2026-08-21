@@ -61,6 +61,11 @@ click-to-WhatsApp attribution and analytics.
   (`high / default / low / webhooks`), idempotent webhook processing.
 - **GDPR** — opt-in tracking + consent state on contacts, `cartping:prune` retention.
 - **Onboarding wizard** — Shopify → WhatsApp → Agent → Widget → Template → Test.
+- **Billing via Shopify Billing API** — plans/pricing live on the marketing site
+  (`/pricing`), NOT in the app. Free plan = 100 messages/month + no flow builder;
+  Builder plan (₹999/mo) unlocks the flow builder, campaigns and higher limits.
+  Subscription charges are created/verified through Shopify's recurring
+  application charge API; the merchant accepts the charge inside Shopify.
 - **SaaS owner panel** — a platform-level dashboard at `/owner` for superadmin/admin
   staff to manage every store (assign plans, enable/disable), create subscription
   plans, and manage platform/store users. Separately authenticated from merchant login.

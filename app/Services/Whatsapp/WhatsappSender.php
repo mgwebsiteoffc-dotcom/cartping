@@ -29,6 +29,8 @@ class WhatsappSender
         ?string $replyTo = null,
         ?Template $template = null,
     ): array {
+        $this->guardPlanLimit($store);
+
         $provider = $this->whatsapp->for($store);
 
         $result = $provider->sendText($contact->wa_id, $body, $replyTo);
@@ -55,6 +57,8 @@ class WhatsappSender
         ?Conversation $conversation = null,
         ?Template $template = null,
     ): array {
+        $this->guardPlanLimit($store);
+
         $provider = $this->whatsapp->for($store);
 
         $result = $provider->sendTemplate($contact->wa_id, $templateName, $lang, $components);
@@ -70,6 +74,19 @@ class WhatsappSender
         ]);
 
         return ['result' => $result];
+    }
+
+    /**
+     * Enforce the store's plan message limit before sending an outbound message.
+     */
+    protected function guardPlanLimit(Store $store): void
+    {
+        if (! $store->canSendMessage()) {
+            throw new \App\Exceptions\PlanLimitExceededException::messages(
+                $store->planMessageLimit(),
+                $store->messagesUsedThisMonth()
+            );
+        }
     }
 
     protected function persist(

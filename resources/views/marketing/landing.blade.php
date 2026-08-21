@@ -15,8 +15,8 @@
         <li>🔴 Real-time human handoff inbox (WebSockets)</li>
     </ul>
     <div class="actions">
-        <a class="btn primary" href="{{ route('auth.signup') }}">Sign up</a>
+        <a class="btn primary" href="{{ route('auth.shopify') }}">Install via Shopify</a>
+        <a class="btn" href="{{ route('marketing.pricing') }}">Pricing</a>
         <a class="btn" href="{{ route('auth.signin') }}">Sign in</a>
-        <a class="btn" href="{{ route('auth.shopify') }}">Install via Shopify</a>
     </div>
 @endsection

@@ -220,4 +220,47 @@ class ShopifyClient
             ],
         ])['webhook'] ?? [];
     }
+
+    /* ------------------------------ Billing ------------------------------ */
+
+    /**
+     * Create a Shopify Billing recurring application charge. Returns the charge
+     * (which contains a confirmation_url the merchant must visit to accept).
+     */
+    public function createRecurringCharge(string $name, float $price, string $returnUrl, ?int $trialDays = null): array
+    {
+        $charge = [
+            'name' => $name,
+            'price' => $price,
+            'return_url' => $returnUrl,
+            'test' => (bool) config('shopify.billing_test', true),
+        ];
+
+        if ($trialDays) {
+            $charge['trial_days'] = $trialDays;
+        }
+
+        return $this->post('recurring_application_charges.json', [
+            'recurring_application_charge' => $charge,
+        ])['recurring_application_charge'] ?? [];
+    }
+
+    /**
+     * Fetch a recurring application charge to verify its status.
+     */
+    public function getRecurringCharge(int $chargeId): array
+    {
+        return $this->get("recurring_application_charges/{$chargeId}.json")['recurring_application_charge'] ?? [];
+    }
+
+    /**
+     * Cancel an active recurring charge.
+     */
+    public function cancelRecurringCharge(int $chargeId): bool
+    {
+        $response = Http::withHeaders($this->headers())
+            ->delete($this->url("recurring_application_charges/{$chargeId}.json"));
+
+        return $response->successful();
+    }
 }
