@@ -8,8 +8,7 @@ use App\Models\Store;
 use App\Models\Template;
 use App\Models\WhatsappConnection;
 use App\Models\WidgetConfig;
-use App\Jobs\SyncShopifyData;
-use App\Services\Shopify\ShopifyClient;
+use App\Services\Shopify\ShopifySyncService;
 use App\Services\Templates\AiTemplateGenerator;
 use App\Services\Templates\TemplateService;
 use App\Services\Whatsapp\WhatsappManager;
@@ -37,7 +36,7 @@ class OnboardingController extends Controller
         ]);
     }
 
-    public function connectShopify(Request $request)
+    public function connectShopify(Request $request, ShopifySyncService $syncService)
     {
         $store = request()->user('store');
 
@@ -51,7 +50,9 @@ class OnboardingController extends Controller
             );
         }
 
-        dispatch(new SyncShopifyData($store));
+        // Sync synchronously so products appear immediately even without a queue worker.
+        $syncService->sync($store);
+
         $store->advanceOnboardingTo(2);
 
         return redirect()->route('onboarding.index');

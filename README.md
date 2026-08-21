@@ -264,17 +264,34 @@ monitor). This app implements that:
 
 ## Flow integration (Shopify Flow)
 
-Custom app triggers/actions are the webhooks this app registers:
+CartPing ships **Flow app extensions** so its custom triggers/actions appear in
+the Shopify Flow builder. To register them you must deploy the app with the
+**Shopify CLI** (this cannot be done from shared-hosting cPanel — run it locally
+or on a dev machine):
 
-**Triggers (out of Shopify):**
-- `message_received` — see `whatsapp.webhook` + `WhatsAppMessageReceived`
-- `ctwa_lead_captured` — `CtwaTrackingController::lead`
-- `opt_in` — `ContactOptIn`
+```bash
+# 1. Put your real app API key in shopify.app.toml (client_id)
+# 2. Deploy the app + extensions:
+shopify app config link
+shopify app deploy
+```
 
-**Actions (from Shopify into the app):**
-- `send_template` / `send_media` / `trigger_chatbot_flow` — route the merchant to
-  your own Flow connector endpoints; the underlying capability is
-  `WhatsappSender::template/media` and `AgentOrchestrator`.
+After deploy, install/update the app on the store (the Flow scopes are granted),
+then in the Shopify admin → **Flow → Create workflow**, search for "CartPing"
+and you'll find:
+
+**Triggers (fire CartPing into the flow):**
+- `WhatsApp message received` (`POST /webhooks/flow/trigger/message-received`)
+- (CTWA lead / opt-in also available via the `topic` field)
+
+**Actions (invoked by the flow):**
+- `Send WhatsApp template` (`POST /webhooks/flow/action/send-template`) — sends an
+  approved template to a customer phone (`{{ customer.phone }}`).
+
+The runtime endpoints are in `FlowWebhookController` under `routes/webhooks.php`.
+
+> The app's **own** visual flow builder (Flows → + New flow → builder) is
+> independent of Shopify Flow and works immediately with no CLI deploy.
 
 ---
 
@@ -419,6 +436,11 @@ Make sure `storage/` and `bootstrap/cache/` are writable.
   keys, so the UUID was truncated when writing the session. It's now a `string`
   in the framework migration, plus `2026_01_01_000024_alter_sessions_user_id_to_uuid_string.php`
   converts already-migrated databases. Run `php artisan migrate` to apply.
+- **Products empty after "Sync from Shopify"** — the old sync dispatched a queued
+  job that never ran without a queue worker on shared hosting. Sync now runs
+  **synchronously** via `ShopifySyncService`, so click the button and it imports
+  immediately. If it's still empty, the Shopify token is missing/revoked or the
+  `read_products` scope isn't granted (check Settings → Shopify).
 
 ---
 

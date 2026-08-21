@@ -1,0 +1,26 @@
+{
+  "name": "WhatsApp message received",
+  "description": "Triggers when a WhatsApp message is received from a customer",
+  "type": "flow_trigger",
+  "apiVersion": "2026-07",
+  "runtimeUrl": "https://cartping.rankboosterinfotech.in/webhooks/flow/trigger/message-received",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "topic": {
+        "type": "string",
+        "title": "Message topic",
+        "default": "inbound_message",
+        "enum": ["inbound_message", "ctwa_lead", "opt_in"]
+      }
+    }
+  },
+  "scopes": ["read_orders", "read_customers", "read_products"],
+  "handlers": [
+    {
+      "type": "invocation",
+      "method": "POST",
+      "format": "json"
+    }
+  ]
+}

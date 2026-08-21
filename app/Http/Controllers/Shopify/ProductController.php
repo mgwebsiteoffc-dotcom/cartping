@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Shopify;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SyncShopifyData;
 use App\Models\Product;
+use App\Services\Shopify\ShopifySyncService;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -19,18 +20,24 @@ class ProductController extends Controller
         return view('products.index', [
             'store' => $store,
             'products' => $products,
+            'shopifyConnected' => (bool) $store->shopifyConnection?->access_token,
         ]);
     }
 
     /**
-     * Re-sync the product catalog from Shopify on demand.
+     * Re-sync the product catalog from Shopify on demand — synchronously so it
+     * works immediately even without a queue worker (shared hosting).
      */
-    public function sync()
+    public function sync(ShopifySyncService $service)
     {
         $store = request()->user('store');
 
-        dispatch(new SyncShopifyData($store));
+        $result = $service->sync($store);
 
-        return back()->with('status', 'Product sync started. Check back shortly.');
+        if ($result['error']) {
+            return back()->withErrors(['sync' => 'Sync failed: '.$result['error']]);
+        }
+
+        return back()->with('status', "Synced {$result['products']} product(s) and {$result['customers']} customer(s).");
     }
 }

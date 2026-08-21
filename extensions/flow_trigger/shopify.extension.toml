@@ -1,0 +1,8 @@
+# Flow trigger extension metadata.
+name = "CartPing WhatsApp triggers"
+type = "flow_trigger"
+handle = "cartping-flow-triggers"
+
+[flow_trigger]
+config_file = "flow_trigger.config.json"
+api_version = "2026-07"

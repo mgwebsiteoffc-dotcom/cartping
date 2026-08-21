@@ -1,0 +1,38 @@
+# Shopify app configuration — deploy with the Shopify CLI:
+#   shopify app config link    (set your API key)
+#   shopify app deploy          (registers app + Flow extensions)
+#
+# The Flow extensions below make CartPing's custom triggers/actions appear in the
+# Shopify Flow builder once deployed.
+
+# Your public app API key / client id (from the Shopify Partner dashboard).
+client_id = "REPLACE_WITH_SHOPIFY_API_KEY"
+
+name = "CartPing"
+# Embedded app entry URL.
+application_url = "https://cartping.rankboosterinfotech.in/dashboard"
+embedded = true
+
+# Redirect URIs (OAuth callback). Keep in sync with SHOPIFY_REDIRECT_URI / APP_URL.
+[app_url]
+redirect_urls = [
+  "https://cartping.rankboosterinfotech.in/auth/shopify/callback",
+  "https://cartping.rankboosterinfotech.in/shopify/callback",
+]
+
+[access_scopes]
+scopes = "read_products,write_products,read_orders,write_orders,read_customers,read_script_tags,write_script_tags,read_checkouts,write_checkouts,read_shopify_payments,read_inventory"
+
+# --- Flow extensions ---------------------------------------------------------
+
+[[extensions]]
+type = "flow_trigger"
+name = "CartPing WhatsApp triggers"
+handle = "cartping-flow-triggers"
+path = "extensions/flow_trigger"
+
+[[extensions]]
+type = "flow_action"
+name = "CartPing WhatsApp actions"
+handle = "cartping-flow-actions"
+path = "extensions/flow_action"

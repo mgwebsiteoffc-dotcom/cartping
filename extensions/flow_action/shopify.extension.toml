@@ -1,0 +1,8 @@
+# Flow action extension metadata.
+name = "CartPing WhatsApp actions"
+type = "flow_action"
+handle = "cartping-flow-actions"
+
+[flow_action]
+config_file = "flow_action.config.json"
+api_version = "2026-07"

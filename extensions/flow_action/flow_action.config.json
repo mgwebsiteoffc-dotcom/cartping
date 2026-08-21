@@ -1,0 +1,27 @@
+{
+  "name": "Send WhatsApp template",
+  "description": "Send an approved WhatsApp template to the customer",
+  "type": "flow_action",
+  "apiVersion": "2026-07",
+  "runtimeUrl": "https://cartping.rankboosterinfotech.in/webhooks/flow/action/send-template",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "template_name": {
+        "type": "string",
+        "title": "Template name",
+        "description": "Approved WhatsApp template name"
+      },
+      "customer_phone": {
+        "type": "string",
+        "title": "Customer phone ({{ customer.phone }})",
+        "description": "Phone number to send to"
+      }
+    },
+    "required": ["template_name", "customer_phone"]
+  },
+  "settings": {
+    "category": "customer_engagement"
+  },
+  "scopes": ["read_orders", "read_customers"]
+}

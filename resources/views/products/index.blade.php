@@ -13,9 +13,24 @@
 
     <p class="muted">Products synced from your Shopify store. They power the AI agent's product search and the smart widget's contextual CTAs.</p>
 
+    @if (! $shopifyConnected)
+        <section class="card setup-banner">
+            <p><strong>Shopify isn't connected.</strong> Connect it first so products can be synced.</p>
+            <a class="btn" href="{{ route('settings.shopify') }}">Connect Shopify</a>
+        </section>
+    @endif
+
     @if ($products->isEmpty())
         <section class="card">
-            <p class="muted">No products synced yet. Click "Sync from Shopify" to pull your catalog (requires your Shopify connection + <code>read_products</code> scope).</p>
+            <p class="muted">
+                @if ($shopifyConnected)
+                    No products found. Click "Sync from Shopify" to pull your catalog.
+                    Requires the <code>read_products</code> scope on your Shopify connection and
+                    that your store has products published.
+                @else
+                    Connect Shopify, then click "Sync from Shopify" to pull your catalog.
+                @endif
+            </p>
         </section>
     @else
         <div class="product-grid">
