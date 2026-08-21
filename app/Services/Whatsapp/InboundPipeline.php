@@ -9,6 +9,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Store;
 use App\Services\Ai\AgentOrchestrator;
+use App\Services\Automation\FlowRunner;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
 
@@ -18,7 +19,8 @@ use Illuminate\Support\Facades\Log;
  *  2. resolve/create the Conversation
  *  3. persist the inbound Message
  *  4. broadcast to the real-time inbox (Reverb)
- *  5. if the thread is in auto mode, run the AI agent and send its reply
+ *  5. run any matching automation flow
+ *  6. if the thread is in auto mode, run the AI agent and send its reply
  */
 class InboundPipeline
 {
@@ -26,6 +28,7 @@ class InboundPipeline
         protected AgentOrchestrator $agent,
         protected WhatsappSender $sender,
         protected WhatsappManager $whatsapp,
+        protected FlowRunner $flows,
     ) {
     }
 
@@ -70,9 +73,55 @@ class InboundPipeline
             'conversation_id' => $conversation->id,
         ]);
 
-        // Let the AI agent reply if the thread is autonomous.
+        // Store the last inbound body on the conversation for flow conditions.
+        $conversation->update(['meta' => array_merge($conversation->meta ?? [], [
+            'last_inbound_body' => $event->body,
+        ])]);
+
+        // Run any matching automation flow (welcome / new_message / keyword).
+        $this->runMatchingFlow($store, $contact, $conversation, $event->body);
+
+        // Let the AI agent reply if the thread is autonomous (and no flow is
+        // currently running/controlling it).
         if ($conversation->agent_mode === 'auto') {
             $this->runAgent($store, $contact, $conversation, $event->body);
+        }
+    }
+
+    /**
+     * Trigger a matching active flow for this conversation.
+     */
+    protected function runMatchingFlow(Store $store, Contact $contact, Conversation $conversation, ?string $body): void
+    {
+        $isNew = $conversation->messages()->count() <= 1;
+
+        $flow = \App\Models\Flow::query()
+            ->where('store_id', $store->id)
+            ->where('is_active', true)
+            ->get()
+            ->first(function ($flow) use ($isNew, $body, $conversation) {
+                return match ($flow->trigger) {
+                    'welcome' => $isNew,
+                    'new_message' => true,
+                    'keyword' => $flow->trigger_value
+                        && $body
+                        && str_contains(mb_strtolower($body), mb_strtolower($flow->trigger_value)),
+                    default => false,
+                };
+            });
+
+        if ($flow) {
+            // If a run is already in progress for this contact, skip to avoid loops.
+            $existing = \App\Models\FlowRun::where('flow_id', $flow->id)
+                ->where('contact_id', $contact->id)
+                ->whereIn('state', ['running'])
+                ->exists();
+
+            if ($existing) {
+                return;
+            }
+
+            $this->flows->run($store, $flow, $contact, $conversation);
         }
     }
 

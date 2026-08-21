@@ -85,6 +85,14 @@ Route::middleware(['shopify.session', 'auth.store'])->group(function () {
         Route::get('/products', [\App\Http\Controllers\Shopify\ProductController::class, 'index'])->name('products.index');
         Route::post('/products/sync', [\App\Http\Controllers\Shopify\ProductController::class, 'sync'])->name('products.sync');
 
+        // Visual chat flow builder
+        Route::get('/flows', [\App\Http\Controllers\Flow\FlowController::class, 'index'])->name('flows.index');
+        Route::post('/flows', [\App\Http\Controllers\Flow\FlowController::class, 'create'])->name('flows.create');
+        Route::get('/flows/{flow}/builder', [\App\Http\Controllers\Flow\FlowController::class, 'builder'])->name('flows.builder');
+        Route::post('/flows/{flow}/save', [\App\Http\Controllers\Flow\FlowController::class, 'save'])->name('flows.save');
+        Route::post('/flows/{flow}/test-run', [\App\Http\Controllers\Flow\FlowController::class, 'testRun'])->name('flows.test-run');
+        Route::get('/flows/{flow}/runs', [\App\Http\Controllers\Flow\FlowController::class, 'runs'])->name('flows.runs');
+
         Route::get('/settings/shopify', [ShopifyController::class, 'settings'])->name('settings.shopify');
     Route::get('/settings/whatsapp', [WhatsappController::class, 'settings'])->name('settings.whatsapp');
     Route::post('/settings/whatsapp', [WhatsappController::class, 'updateSettings'])->name('settings.whatsapp.update');

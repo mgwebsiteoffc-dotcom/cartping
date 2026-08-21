@@ -31,6 +31,10 @@ click-to-WhatsApp attribution and analytics.
   (GPT-4o + free reasoning models), using an **8-layer prompt**.
 - **AI template generation** — multi-level approvals (internal → compliance →
   provider), compliance checking, and A/B variant creation submitted to the provider.
+- **Visual chat flow builder** — drag-and-drop style automation flows (like
+  Aisensy/Wati): message / template / delay / condition / assign-human / end
+  nodes, triggered by welcome, new message, or keyword. Runs are tracked and
+  delays resume via the queue.
 - **CTWA (Click-to-WhatsApp) ads** — full attribution from ad click →
   WhatsApp conversation → Shopify order → **Meta Conversions API** for ROAS.
 - **Shopify Flow** hooks: custom triggers/actions are wired via webhook topics

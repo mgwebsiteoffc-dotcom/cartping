@@ -118,3 +118,23 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
 
 /* Setup banner */
 .setup-banner { border-left: 4px solid var(--green); }
+
+/* Flow builder */
+.flow-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+.flow-palette { display: flex; flex-direction: column; gap: 6px; position: sticky; top: 12px; }
+.flow-palette h3 { margin: 0 0 6px; }
+.node-add { text-align: left; padding: 9px 12px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; font-size: 14px; }
+.node-add:hover { border-color: var(--green); }
+.flow-canvas { background: var(--panel); border: 1px dashed var(--border); border-radius: 12px; padding: 18px; min-height: 60vh; display: flex; flex-direction: column; gap: 12px; }
+.canvas-hint { color: var(--muted); }
+.flow-node { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.flow-node.type-start { border-left-color: var(--green); }
+.flow-node.type-condition { border-left-color: #ffc107; }
+.flow-node.type-end { border-left-color: var(--danger); }
+.flow-node-title { font-weight: 600; }
+.flow-node-config, .flow-node-conn { display: flex; flex-direction: column; gap: 6px; }
+.flow-field { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.flow-field span { color: var(--muted); }
+.flow-node-actions { display: flex; justify-content: flex-end; }
+.new-flow { position: relative; }
+.new-flow form { position: absolute; right: 0; top: 34px; width: 280px; z-index: 50; }
