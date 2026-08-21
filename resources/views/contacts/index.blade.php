@@ -5,10 +5,24 @@
 @section('content')
     <div class="row">
         <h1>Contacts</h1>
-        <form method="GET" class="row">
-            <input name="q" placeholder="Search name / number / email" value="{{ request('q') }}">
-            <button class="btn" type="submit">Search</button>
-        </form>
+        <div class="row">
+            <a class="btn" href="{{ route('contacts.export', request()->only(['q', 'tag'])) }}">⬇ Export CSV</a>
+            <details>
+                <summary class="btn">⬆ Import CSV</summary>
+                <div class="card" style="margin-top:.5rem;min-width:320px">
+                    <p class="muted" style="margin:0 0 6px">Columns: <code>wa_id</code> (required), <code>profile_name</code>, <code>email</code>, <code>phone</code>, <code>tags</code> (pipe-separated), <code>consent</code> (OPT_IN / OPT_OUT / NOT_REQUIRED).</p>
+                    <form method="POST" action="{{ route('contacts.import') }}" enctype="multipart/form-data">
+                        @csrf
+                        <input type="file" name="csv" accept=".csv,.txt" required>
+                        <button class="btn primary" type="submit">Import</button>
+                    </form>
+                </div>
+            </details>
+            <form method="GET" class="row">
+                <input name="q" placeholder="Search name / number / email" value="{{ request('q') }}">
+                <button class="btn" type="submit">Search</button>
+            </form>
+        </div>
     </div>
 
     <div class="row" style="margin: 12px 0">

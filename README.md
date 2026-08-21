@@ -52,10 +52,10 @@ click-to-WhatsApp attribution and analytics.
   hourly send limit, per-recipient delivery stats, and a **calendar view** of scheduled
   broadcasts. Dispatched every minute by the scheduler.
 - **Contacts & segments** — searchable contact list with consent state, tags,
-  Shopify customer link, and a **segment builder** with multi-condition groups
-  (AND within a group, OR between groups) over fields like tags, consent, name,
-  email, source, last-seen, orders and LTV. Segments are reusable in campaigns
-  and show a live matching-contact count.
+  Shopify customer link, **CSV export/import** (upsert by WhatsApp number), and a
+  **segment builder** with multi-condition groups (AND within a group, OR between
+  groups) over fields like tags, consent, name, email, source, last-seen, orders
+  and LTV. Segments are reusable in campaigns and show a live matching-contact count.
 - **Analytics** — message performance, automation conversion, template A/B,
   CTWA ROAS, widget CTR, AI resolution rates, escalation reasons, revenue attribution.
 - **Queued event-driven architecture** — Horizon with tiered queues

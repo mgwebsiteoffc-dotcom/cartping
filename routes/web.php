@@ -139,6 +139,8 @@ Route::middleware(['shopify.session', 'auth.store', 'store.enabled'])->group(fun
 
         // Contacts & segments
         Route::get('/contacts', [\App\Http\Controllers\Contact\ContactController::class, 'index'])->name('contacts.index');
+        Route::get('/contacts/export', [\App\Http\Controllers\Contact\ContactController::class, 'export'])->name('contacts.export');
+        Route::post('/contacts/import', [\App\Http\Controllers\Contact\ContactController::class, 'import'])->name('contacts.import');
         Route::get('/contacts/{contact}', [\App\Http\Controllers\Contact\ContactController::class, 'show'])->name('contacts.show');
         Route::post('/contacts/{contact}/tags', [\App\Http\Controllers\Contact\ContactController::class, 'updateTags'])->name('contacts.tags');
 
