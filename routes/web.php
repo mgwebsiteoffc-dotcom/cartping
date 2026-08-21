@@ -37,6 +37,7 @@ Route::prefix('owner')->name('owner.')->group(function () {
         Route::get('/', [OwnerController::class, 'dashboard'])->name('dashboard');
         Route::get('/stores', [OwnerController::class, 'stores'])->name('stores');
         Route::post('/stores/{store}', [OwnerController::class, 'updateStore'])->name('stores.update');
+        Route::post('/stores/{store}/toggle', [OwnerController::class, 'toggleStore'])->name('stores.toggle');
         Route::get('/plans', [OwnerController::class, 'plans'])->name('plans');
         Route::post('/plans', [OwnerController::class, 'storePlan'])->name('plans.store');
         Route::post('/plans/{plan}', [OwnerController::class, 'updatePlan'])->name('plans.update');
@@ -98,7 +99,7 @@ Route::get('/shopify/callback', [ShopifyAuthController::class, 'callback'])->nam
 // outside the auth group; it resolves the store via the ?shop param.
 Route::get('/billing/{plan}/callback', [\App\Http\Controllers\Billing\BillingController::class, 'callback'])->name('billing.callback');
 
-Route::middleware(['shopify.session', 'auth.store'])->group(function () {
+Route::middleware(['shopify.session', 'auth.store', 'store.enabled'])->group(function () {
     Route::get('/dashboard', [ShopifyController::class, 'dashboard'])->name('dashboard.index');
 
     // Start a paid subscription (redirects to Shopify confirmation).

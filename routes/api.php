@@ -35,7 +35,7 @@ Route::post('agent/message', [AgentApiController::class, 'message'])->name('agen
 */
 // shopify.session lets the embedded admin iframe authenticate via the id_token
 // query param (cookies are blocked inside the admin iframe).
-Route::middleware(['shopify.session', 'auth.store'])->prefix('api')->name('api.')->group(function () {
+Route::middleware(['shopify.session', 'auth.store', 'store.enabled'])->prefix('api')->name('api.')->group(function () {
     Route::get('conversations', [\App\Http\Controllers\Inbox\InboxApiController::class, 'list'])->name('conversations.list');
     Route::get('conversations/{conversation}/messages', [\App\Http\Controllers\Inbox\InboxApiController::class, 'messages'])->name('conversations.messages');
 });

@@ -67,8 +67,11 @@ click-to-WhatsApp attribution and analytics.
   Subscription charges are created/verified through Shopify's recurring
   application charge API; the merchant accepts the charge inside Shopify.
 - **SaaS owner panel** — a platform-level dashboard at `/owner` for superadmin/admin
-  staff to manage every store (assign plans, enable/disable), create subscription
-  plans, and manage platform/store users. Separately authenticated from merchant login.
+  staff to manage every store (assign plans, **enable/disable with a one-click
+  toggle**), create subscription plans, view MRR by plan + Shopify charge ids, and
+  manage platform/store users. Separately authenticated from merchant login.
+  Disabled stores are blocked from signing in and from using the app (a clear
+  "store disabled" page is shown).
 
 ---
 

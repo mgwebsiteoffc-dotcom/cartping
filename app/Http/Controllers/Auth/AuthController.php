@@ -31,6 +31,10 @@ class AuthController extends Controller
         // Manual mode merchants sign in with their shop domain.
         $store = Store::where('myshopify_domain', $credentials['myshopify_domain'])->first();
 
+        if ($store && $store->isDisabled()) {
+            return back()->withErrors(['myshopify_domain' => 'This store account has been disabled. Contact support.']);
+        }
+
         if ($store && \Illuminate\Support\Facades\Hash::check($credentials['password'], $store->password)) {
             Auth::guard('store')->login($store);
             return redirect()->route('dashboard.index');

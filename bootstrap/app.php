@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'provisioned'   => \App\Http\Middleware\RequireProvisioned::class,
             'role:owner'    => \App\Http\Middleware\EnsureOwnerRole::class,
             'owner'         => \App\Http\Middleware\EnsurePlatformOwner::class,
+            'store.enabled' => \App\Http\Middleware\EnsureStoreEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -67,16 +67,28 @@ class OwnerController extends Controller
         $data = $request->validate([
             'plan_id' => ['nullable', 'exists:plans,id'],
             'plan_expires_at' => ['nullable', 'date'],
-            'disabled' => ['boolean'],
         ]);
 
         $store->update([
             'plan_id' => $data['plan_id'] ?? null,
             'plan_expires_at' => $data['plan_expires_at'] ?? null,
-            'disabled_at' => $request->boolean('disabled') ? now() : null,
         ]);
 
         return back()->with('status', "Store '{$store->myshopify_domain}' updated.");
+    }
+
+    /**
+     * Enable / disable a store with a single toggle.
+     */
+    public function toggleStore(Store $store)
+    {
+        $store->update([
+            'disabled_at' => $store->isDisabled() ? null : now(),
+        ]);
+
+        $state = $store->isDisabled() ? 'disabled' : 'enabled';
+
+        return back()->with('status', "Store '{$store->myshopify_domain}' is now {$state}.");
     }
 
     /* ------------------------------ Plans -------------------------------- */

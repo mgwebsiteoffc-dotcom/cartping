@@ -121,6 +121,10 @@ class ShopifyAuthController extends Controller
             implode(',', config('shopify.scopes'))
         );
 
+        if ($store->isDisabled()) {
+            abort(403, 'This store has been disabled. Contact support.');
+        }
+
         Auth::guard('store')->login($store);
 
         // Embedded app: redirect back into the Shopify admin. Shopify will load

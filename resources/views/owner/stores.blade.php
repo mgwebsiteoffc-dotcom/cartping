@@ -21,23 +21,28 @@
                 </td>
                 <td><span class="badge {{ $s->isDisabled() ? 'error' : '' }}">{{ $s->isDisabled() ? 'Disabled' : 'Active' }}</span></td>
                 <td>
-                    <details>
-                        <summary class="btn">Manage</summary>
-                        <form method="POST" action="{{ route('owner.stores.update', $s) }}" class="stack card" style="margin-top:.4rem;min-width:260px">
+                    <div class="row">
+                        <form method="POST" action="{{ route('owner.stores.toggle', $s) }}">
                             @csrf
-                            <label>Plan
-                                <select name="plan_id">
-                                    <option value="">—</option>
-                                    @foreach ($plans as $p)
-                                        <option value="{{ $p->id }}" @selected($s->plan_id === $p->id)>{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label>Plan expiry<input type="date" name="plan_expires_at" value="{{ $s->plan_expires_at?->format('Y-m-d') }}"></label>
-                            <label><input type="checkbox" name="disabled" value="1" @checked($s->isDisabled())> Disabled</label>
-                            <button class="btn primary" type="submit">Save</button>
+                            <button class="btn {{ $s->isDisabled() ? 'primary' : '' }}">{{ $s->isDisabled() ? 'Enable' : 'Disable' }}</button>
                         </form>
-                    </details>
+                        <details>
+                            <summary class="btn">Manage</summary>
+                            <form method="POST" action="{{ route('owner.stores.update', $s) }}" class="stack card" style="margin-top:.4rem;min-width:260px">
+                                @csrf
+                                <label>Plan
+                                    <select name="plan_id">
+                                        <option value="">—</option>
+                                        @foreach ($plans as $p)
+                                            <option value="{{ $p->id }}" @selected($s->plan_id === $p->id)>{{ $p->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <label>Plan expiry<input type="date" name="plan_expires_at" value="{{ $s->plan_expires_at?->format('Y-m-d') }}"></label>
+                                <button class="btn primary" type="submit">Save plan</button>
+                            </form>
+                        </details>
+                    </div>
                 </td>
             </tr>
         @empty
